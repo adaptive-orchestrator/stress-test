@@ -1,0 +1,21 @@
+# K6 output files
+#*-summary.json
+
+# Test output directories
+test/
+test*/
+
+# Temporary files
+*.tmp
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Node modules (if any)
+node_modules/

@@ -1,0 +1,17 @@
+{
+  "test": "Billing API (via Orders) - 1000 VUs Stress Test",
+  "timestamp": "2025-11-29T17:47:10.448Z",
+  "description": "Invoices created automatically via Order events (Redpanda)",
+  "metrics": {
+    "total_requests": 24740,
+    "failed_requests": 0,
+    "avg_response_time": "1964.27",
+    "p95_response_time": "5870.42",
+    "p99_response_time": "7355.05",
+    "orders_created": 6280,
+    "invoices_read": 6329,
+    "invoice_status_updated": 2644,
+    "error_count": 0,
+    "success_rate": "100.00%"
+  }
+}

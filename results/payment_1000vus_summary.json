@@ -1,0 +1,15 @@
+{
+  "test": "Payment API - 1000 VUs Stress Test",
+  "timestamp": "2025-11-30T04:51:50.805Z",
+  "metrics": {
+    "total_requests": 14324,
+    "failed_requests": 3020,
+    "avg_response_time": "23169.35",
+    "p95_response_time": "60000.54",
+    "p99_response_time": "60001.79",
+    "payments_initiated": 3877,
+    "payments_confirmed": 2676,
+    "payment_errors": 139,
+    "success_rate": "99.13%"
+  }
+}

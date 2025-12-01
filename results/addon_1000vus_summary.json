@@ -1,0 +1,478 @@
+{
+  "metrics": {
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 1868.92865,
+        "p(95)": 2226.1367,
+        "p(99)": 2798.69912,
+        "avg": 749.4676191161623,
+        "min": 0.3167,
+        "med": 469.15745,
+        "max": 5575.6623
+      }
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 1000,
+        "min": 1000,
+        "max": 1000
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 1722.6967882199438,
+        "min": 303.5253,
+        "med": 1505.4601,
+        "max": 8989.1264,
+        "p(90)": 2913.9882800000005,
+        "p(95)": 3432.1476400000006,
+        "p(99)": 5334.0126599999885
+      }
+    },
+    "addon_purchase_duration": {
+      "contains": "time",
+      "values": {
+        "p(99)": 2773.119999999999,
+        "avg": 794.1609798775153,
+        "min": 0,
+        "med": 552,
+        "max": 5003,
+        "p(90)": 1873,
+        "p(95)": 2173
+      },
+      "type": "trend"
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.9945326559901588,
+        "passes": 174628,
+        "fails": 960
+      }
+    },
+    "data_received": {
+      "values": {
+        "rate": 465534.57671172754,
+        "count": 195851039
+      },
+      "type": "counter",
+      "contains": "data"
+    },
+    "http_req_waiting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 0,
+        "med": 470.57304999999997,
+        "max": 5575.6623,
+        "p(90)": 1865.4497000000001,
+        "p(95)": 2223.45355,
+        "p(99)": 2795.3024100000002,
+        "avg": 749.0536893037993
+      }
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 0,
+        "p(99)": 0,
+        "avg": 0,
+        "min": 0,
+        "med": 0,
+        "max": 0,
+        "p(90)": 0
+      }
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 0.02078764564539681,
+        "min": 0,
+        "med": 0,
+        "max": 76.5672,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0.5669
+      }
+    },
+    "http_reqs": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 193106,
+        "rate": 459.0096658639368
+      }
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 5575.6623,
+        "p(90)": 1865.5866999999998,
+        "p(95)": 2223.582475,
+        "p(99)": 2795.368625,
+        "avg": 749.2148029367149,
+        "min": 0.3167,
+        "med": 470.70759999999996
+      },
+      "thresholds": {
+        "p(95)<2000": {
+          "ok": false
+        },
+        "p(99)<5000": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 129.0569,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0.5071,
+        "avg": 0.013227684794879483,
+        "min": 0,
+        "med": 0
+      }
+    },
+    "http_req_connecting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 0,
+        "med": 0,
+        "max": 129.0569,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0,
+        "avg": 0.007544437252079167
+      }
+    },
+    "addon_list_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 679.5105246978497,
+        "min": 0,
+        "med": 408,
+        "max": 5133,
+        "p(90)": 1724,
+        "p(95)": 2053,
+        "p(99)": 2609.9400000000023
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "min": 3,
+        "max": 1000,
+        "value": 12
+      }
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0.5364,
+        "p(95)": 0.661875,
+        "p(99)": 1.597095000000001,
+        "avg": 0.140325987281596,
+        "min": 0,
+        "med": 0,
+        "max": 74.6201
+      }
+    },
+    "error_rate": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "fails": 174628,
+        "rate": 0.005467344009841219,
+        "passes": 960
+      },
+      "thresholds": {
+        "rate<0.15": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_failed": {
+      "thresholds": {
+        "rate<0.15": {
+          "ok": true
+        }
+      },
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0.006162418568040351,
+        "passes": 1190,
+        "fails": 191916
+      }
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 176349,
+        "rate": 419.1785628900158
+      }
+    },
+    "addon_get_duration": {
+      "contains": "time",
+      "values": {
+        "med": 399,
+        "max": 4654,
+        "p(90)": 1640.7000000000007,
+        "p(95)": 1915,
+        "p(99)": 2469.269999999997,
+        "avg": 653.0363826539266,
+        "min": 0
+      },
+      "type": "trend"
+    },
+    "addon_cancel_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 990.4580722172486,
+        "min": 5,
+        "med": 520,
+        "max": 5492,
+        "p(90)": 2443,
+        "p(95)": 2658,
+        "p(99)": 3051.459999999999
+      }
+    },
+    "data_sent": {
+      "contains": "data",
+      "values": {
+        "count": 21188212,
+        "rate": 50364.01826133966
+      },
+      "type": "counter"
+    },
+    "addon_user_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 530,
+        "max": 5576,
+        "p(90)": 1851,
+        "p(95)": 2197,
+        "p(99)": 2766.139999999992,
+        "avg": 777.6565053869864,
+        "min": 0
+      }
+    }
+  },
+  "setup_data": {
+    "addons": [
+      {
+        "description": "S??? d???ng t??n mi???n ri??ng cho ???ng d???ng c???a b???n",
+        "features": "{\"ssl_included\":true,\"custom_domain\":true}",
+        "id": 7,
+        "isActive": true,
+        "name": "Custom Domain",
+        "addonKey": "custom_domain",
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "price": 20000,
+        "updatedAt": ""
+      },
+      {
+        "description": "T??ng dung l?????ng l??u tr??? t??? 10GB l??n 60GB",
+        "features": "{\"storage_gb\":50}",
+        "price": 30000,
+        "updatedAt": "",
+        "addonKey": "extra_storage_50gb",
+        "createdAt": "",
+        "id": 1,
+        "isActive": true,
+        "name": "Extra 50GB Storage",
+        "billingPeriod": "monthly"
+      },
+      {
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "description": "H??? tr??? ??u ti??n qua email/chat, ph???n h???i trong 1 gi???",
+        "id": 6,
+        "isActive": true,
+        "price": 30000,
+        "updatedAt": "",
+        "addonKey": "priority_support",
+        "features": "{\"priority_level\":1,\"response_time_hours\":1}",
+        "name": "Priority Support"
+      },
+      {
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "isActive": true,
+        "name": "Extra 100GB Storage",
+        "price": 50000,
+        "addonKey": "extra_storage_100gb",
+        "description": "T??ng dung l?????ng l??u tr??? t??? 10GB l??n 110GB",
+        "features": "{\"storage_gb\":100}",
+        "id": 2,
+        "updatedAt": ""
+      },
+      {
+        "addonKey": "ai_assistant_basic",
+        "billingPeriod": "monthly",
+        "description": "Tr??? l?? AI c?? b???n, 100 requests/ng??y",
+        "id": 5,
+        "name": "AI Assistant Basic",
+        "price": 50000,
+        "createdAt": "",
+        "features": "{\"priority\":\"normal\",\"ai_enabled\":true,\"requests_per_day\":100}",
+        "isActive": true,
+        "updatedAt": ""
+      },
+      {
+        "createdAt": "",
+        "description": "Additional 100GB storage space for your account",
+        "updatedAt": "",
+        "features": "{\"storage_gb\":100,\"priority_support\":false}",
+        "id": 31,
+        "isActive": true,
+        "name": "Extra Storage 100GB",
+        "price": 50000,
+        "addonKey": "extra_storage",
+        "billingPeriod": "monthly"
+      },
+      {
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "description": "L??m vi???c nh??m v???i t???i ??a 10 th??nh vi??n",
+        "features": "{\"max_team_members\":10,\"shared_workspace\":true}",
+        "isActive": true,
+        "name": "Team Collaboration",
+        "addonKey": "team_collaboration",
+        "id": 9,
+        "price": 80000,
+        "updatedAt": ""
+      },
+      {
+        "addonKey": "ai_assistant",
+        "createdAt": "",
+        "description": "Tr??? l?? AI th??ng minh, h??? tr??? 24/7, kh??ng gi???i h???n requests",
+        "features": "{\"priority\":\"high\",\"ai_enabled\":true,\"requests_per_day\":-1}",
+        "id": 4,
+        "isActive": true,
+        "updatedAt": "",
+        "billingPeriod": "monthly",
+        "name": "AI Assistant Pro",
+        "price": 100000
+      },
+      {
+        "updatedAt": "",
+        "addonKey": "api_access",
+        "createdAt": "",
+        "features": "{\"api_enabled\":true,\"rate_limit_per_hour\":10000}",
+        "id": 8,
+        "isActive": true,
+        "price": 150000,
+        "billingPeriod": "monthly",
+        "description": "Truy c???p API v???i rate limit cao h??n (10,000 requests/gi???)",
+        "name": "API Access"
+      },
+      {
+        "description": "T??ng dung l?????ng l??u tr??? t??? 10GB l??n 510GB",
+        "id": 3,
+        "isActive": true,
+        "name": "Extra 500GB Storage",
+        "price": 200000,
+        "addonKey": "extra_storage_500gb",
+        "billingPeriod": "monthly",
+        "features": "{\"storage_gb\":500}",
+        "updatedAt": "",
+        "createdAt": ""
+      },
+      {
+        "id": 10,
+        "isActive": true,
+        "name": "White Label",
+        "updatedAt": "",
+        "features": "{\"custom_logo\":true,\"remove_branding\":true}",
+        "price": 300000,
+        "addonKey": "white_label",
+        "billingPeriod": "onetime",
+        "createdAt": "",
+        "description": "Lo???i b??? branding c???a h??? th???ng, s??? d???ng brand ri??ng"
+      }
+    ]
+  },
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": [
+        {
+          "passes": 34875,
+          "fails": 488,
+          "name": "user 200",
+          "path": "::user 200",
+          "id": "9400e30b34b5bd5a61348b7a461d6b31"
+        },
+        {
+          "name": "list 200",
+          "path": "::list 200",
+          "id": "bb957fc3b3b94304050fa1ff782f2f89",
+          "passes": 61763,
+          "fails": 44
+        },
+        {
+          "name": "get 200",
+          "path": "::get 200",
+          "id": "2c445af86d719d43e970db9ef11acf1c",
+          "passes": 35374,
+          "fails": 0
+        },
+        {
+          "fails": 6,
+          "name": "cancel 200",
+          "path": "::cancel 200",
+          "id": "795d8f11ee23ff18a2f73178c1e633d7",
+          "passes": 16749
+        },
+        {
+          "name": "purchase 200/400",
+          "path": "::purchase 200/400",
+          "id": "8c3acef446d07f8cd830a317653a2b6b",
+          "passes": 25867,
+          "fails": 422
+        }
+      ]
+  },
+  "options": {
+    "summaryTimeUnit": "",
+    "noColor": false,
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)",
+      "p(99)"
+    ]
+  },
+  "state": {
+    "isStdOutTTY": true,
+    "isStdErrTTY": true,
+    "testRunDurationMs": 420701.3803
+  }
+}

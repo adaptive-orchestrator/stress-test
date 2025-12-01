@@ -1,0 +1,466 @@
+{
+  "root_group": {
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [],
+    "checks": [
+        {
+          "id": "9400e30b34b5bd5a61348b7a461d6b31",
+          "passes": 38177,
+          "fails": 0,
+          "name": "user 200",
+          "path": "::user 200"
+        },
+        {
+          "passes": 37964,
+          "fails": 0,
+          "name": "get 200",
+          "path": "::get 200",
+          "id": "2c445af86d719d43e970db9ef11acf1c"
+        },
+        {
+          "path": "::purchase 200/400",
+          "id": "8c3acef446d07f8cd830a317653a2b6b",
+          "passes": 28769,
+          "fails": 0,
+          "name": "purchase 200/400"
+        },
+        {
+          "id": "bb957fc3b3b94304050fa1ff782f2f89",
+          "passes": 66845,
+          "fails": 0,
+          "name": "list 200",
+          "path": "::list 200"
+        },
+        {
+          "path": "::cancel 200",
+          "id": "795d8f11ee23ff18a2f73178c1e633d7",
+          "passes": 18151,
+          "fails": 0,
+          "name": "cancel 200"
+        }
+      ]
+  },
+  "options": {
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)",
+      "p(99)"
+    ],
+    "summaryTimeUnit": "",
+    "noColor": false
+  },
+  "state": {
+    "isStdErrTTY": true,
+    "testRunDurationMs": 421535.0088,
+    "isStdOutTTY": true
+  },
+  "metrics": {
+    "data_sent": {
+      "values": {
+        "count": 22825728,
+        "rate": 54149.06834186532
+      },
+      "type": "counter",
+      "contains": "data"
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 0.014312100774415108,
+        "min": 0,
+        "med": 0,
+        "max": 45.5994,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0.5247
+      }
+    },
+    "http_req_waiting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 1223.9403,
+        "p(95)": 1531.9747,
+        "p(99)": 2076.5188,
+        "avg": 629.7499171375841,
+        "min": 0,
+        "med": 569.1494,
+        "max": 3029.6152
+      }
+    },
+    "addon_list_duration": {
+      "contains": "time",
+      "values": {
+        "med": 505,
+        "max": 2535,
+        "p(90)": 1017,
+        "p(95)": 1253,
+        "p(99)": 1722,
+        "avg": 537.5212057745531,
+        "min": 0
+      },
+      "type": "trend"
+    },
+    "error_rate": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 189906
+      },
+      "thresholds": {
+        "rate<0.15": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0,
+        "avg": 0,
+        "min": 0,
+        "med": 0,
+        "max": 0
+      }
+    },
+    "addon_purchase_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "min": 1,
+        "med": 669,
+        "max": 3030,
+        "p(90)": 1441,
+        "p(95)": 1767,
+        "p(99)": 2278.3199999999997,
+        "avg": 740.6012374430811
+      }
+    },
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 1532.0483,
+        "p(99)": 2076.7744199999997,
+        "avg": 629.8850989993393,
+        "min": 0,
+        "med": 569.2485,
+        "max": 3029.6152,
+        "p(90)": 1224.0644
+      },
+      "thresholds": {
+        "p(99)<5000": {
+          "ok": true
+        },
+        "p(95)<2000": {
+          "ok": true
+        }
+      }
+    },
+    "vus_max": {
+      "contains": "default",
+      "values": {
+        "value": 1000,
+        "min": 1000,
+        "max": 1000
+      },
+      "type": "gauge"
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 2419.6094200000002,
+        "p(95)": 2803.5350700000004,
+        "p(99)": 3576.203208,
+        "avg": 1590.3195198853539,
+        "min": 302.4425,
+        "med": 1513.5537,
+        "max": 6004.261
+      }
+    },
+    "http_reqs": {
+      "values": {
+        "count": 209061,
+        "rate": 495.9516899797766
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "addon_get_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 540.7399378358444,
+        "min": 0,
+        "med": 503,
+        "max": 2427,
+        "p(90)": 1040,
+        "p(95)": 1267,
+        "p(99)": 1766.3700000000026
+      }
+    },
+    "addon_cancel_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 696,
+        "max": 2777,
+        "p(90)": 1408,
+        "p(95)": 1788,
+        "p(99)": 2314,
+        "avg": 758.4095091179549,
+        "min": 9
+      }
+    },
+    "http_req_failed": {
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 209061
+      },
+      "thresholds": {
+        "rate<0.15": {
+          "ok": true
+        }
+      },
+      "type": "rate",
+      "contains": "default"
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(90)": 0.5313,
+        "p(95)": 0.6225,
+        "p(99)": 1.0179399999999994,
+        "avg": 0.12086976097885256,
+        "min": 0,
+        "med": 0,
+        "max": 27.4043
+      }
+    },
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 629.8850989993393,
+        "min": 0,
+        "med": 569.2485,
+        "max": 3029.6152,
+        "p(90)": 1224.0644,
+        "p(95)": 1532.0483,
+        "p(99)": 2076.7744199999997
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 189906,
+        "fails": 0
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 4,
+        "min": 3,
+        "max": 1000
+      }
+    },
+    "addon_user_duration": {
+      "contains": "time",
+      "values": {
+        "avg": 695.6625455116955,
+        "min": 0,
+        "med": 627,
+        "max": 2759,
+        "p(90)": 1381,
+        "p(95)": 1668,
+        "p(99)": 2164
+      },
+      "type": "trend"
+    },
+    "http_req_connecting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 0,
+        "p(99)": 0,
+        "avg": 0.0061419925284964694,
+        "min": 0,
+        "med": 0,
+        "max": 30.8049,
+        "p(90)": 0
+      }
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 190899,
+        "rate": 452.86630057949293
+      }
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 0,
+        "max": 30.8049,
+        "p(90)": 0,
+        "p(95)": 0,
+        "p(99)": 0,
+        "avg": 0.01063965349826129,
+        "min": 0
+      }
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 162827433,
+        "rate": 386272.6217296332
+      }
+    }
+  },
+  "setup_data": {
+    "addons": [
+      {
+        "name": "Extra Storage 10GB",
+        "price": 49000,
+        "updatedAt": "",
+        "billingPeriod": "monthly",
+        "features": "{}",
+        "isActive": true,
+        "addonKey": "extra_storage",
+        "createdAt": "",
+        "description": "",
+        "id": 1
+      },
+      {
+        "updatedAt": "",
+        "addonKey": "data_export",
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "features": "{}",
+        "id": 7,
+        "isActive": true,
+        "name": "Data Export Pro",
+        "price": 59000,
+        "description": ""
+      },
+      {
+        "name": "Advanced Analytics",
+        "updatedAt": "",
+        "addonKey": "advanced_analytics",
+        "description": "",
+        "features": "{}",
+        "id": 4,
+        "price": 79000,
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "isActive": true
+      },
+      {
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "description": "",
+        "isActive": true,
+        "name": "AI Assistant",
+        "updatedAt": "",
+        "addonKey": "ai_assistant",
+        "features": "{}",
+        "id": 2,
+        "price": 99000
+      },
+      {
+        "name": "Multi User Access",
+        "price": 129000,
+        "updatedAt": "",
+        "addonKey": "multi_user",
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "description": "",
+        "id": 8,
+        "features": "{}",
+        "isActive": true
+      },
+      {
+        "description": "",
+        "features": "{}",
+        "id": 3,
+        "isActive": true,
+        "addonKey": "priority_support",
+        "billingPeriod": "monthly",
+        "name": "Priority Support",
+        "price": 149000,
+        "updatedAt": "",
+        "createdAt": ""
+      },
+      {
+        "addonKey": "api_access",
+        "billingPeriod": "monthly",
+        "createdAt": "",
+        "features": "{}",
+        "id": 5,
+        "isActive": true,
+        "price": 199000,
+        "description": "",
+        "name": "API Access",
+        "updatedAt": ""
+      },
+      {
+        "addonKey": "custom_branding",
+        "billingPeriod": "monthly",
+        "description": "",
+        "features": "{}",
+        "id": 6,
+        "isActive": true,
+        "name": "Custom Branding",
+        "price": 299000,
+        "createdAt": "",
+        "updatedAt": ""
+      }
+    ]
+  },
+  "k8sRecommendation": {
+    "serviceName": "addon-svc",
+    "replicas": 4,
+    "resources": {
+      "requests": {
+        "cpu": "300m",
+        "memory": "256Mi"
+      },
+      "limits": {
+        "cpu": "1500m",
+        "memory": "768Mi"
+      }
+    },
+    "metrics": {
+      "maxVUs": 1000,
+      "avgResponseTime": "629.89",
+      "p95ResponseTime": "1532.05",
+      "p99ResponseTime": "2076.77",
+      "errorRate": "0.00",
+      "throughput": "495.95",
+      "waitingTime": "629.75",
+      "blockedTime": "0.01"
+    }
+  }
+}

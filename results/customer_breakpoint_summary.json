@@ -1,0 +1,8 @@
+{
+  "totalRequests": 301991,
+  "requestsPerSecond": 457.1343356626986,
+  "p95Latency": 3796.18985,
+  "errorRate": 0,
+  "recommendation": "❌ LIMIT REACHED - Đã đạt giới hạn hệ thống!",
+  "timestamp": "2025-11-29T01:55:44.405Z"
+}
