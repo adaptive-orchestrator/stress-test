@@ -23,6 +23,57 @@ export const options = {
 
 const BASE_URL = 'http://localhost:3000';
 
+// Test users - each VU gets a different user to test data isolation
+const TEST_USERS = [
+  { email: 'testuser1@example.com', password: 'test123456' },
+  { email: 'testuser2@example.com', password: 'test123456' },
+  { email: 'testuser3@example.com', password: 'test123456' },
+  { email: 'testuser4@example.com', password: 'test123456' },
+  { email: 'testuser5@example.com', password: 'test123456' },
+  { email: 'testuser6@example.com', password: 'test123456' },
+  { email: 'testuser7@example.com', password: 'test123456' },
+  { email: 'testuser8@example.com', password: 'test123456' },
+  { email: 'testuser9@example.com', password: 'test123456' },
+  { email: 'testuser10@example.com', password: 'test123456' },
+];
+
+// Cache for auth tokens
+const authCache = {};
+
+function getAuthHeaders(vuIndex) {
+  const userIndex = vuIndex % TEST_USERS.length;
+  const user = TEST_USERS[userIndex];
+  
+  // Try to use cached token
+  if (authCache[user.email]) {
+    return authCache[user.email];
+  }
+  
+  // Login to get token
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: user.email, password: user.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status === 200) {
+    try {
+      const body = JSON.parse(loginRes.body);
+      const token = body.token || body.access_token;
+      authCache[user.email] = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+      return authCache[user.email];
+    } catch (e) {
+      console.error('Failed to parse login response');
+    }
+  }
+  
+  // Fallback to no auth (for backward compatibility)
+  return { 'Content-Type': 'application/json' };
+}
+
 function createItem() {
   return {
     productId: 1,
@@ -32,8 +83,8 @@ function createItem() {
 }
 
 function createOrderPayload() {
+  // Don't specify customerId - backend will use authenticated user's ID
   return {
-    customerId: 1,
     items: [createItem()],
     notes: 'Stress test order',
     shippingAddress: '123 Test Street, District 1, Ho Chi Minh City',
@@ -41,9 +92,9 @@ function createOrderPayload() {
 }
 
 export default function () {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = getAuthHeaders(__VU);
 
-  // Create
+  // Create order (using authenticated user)
   const createRes = http.post(`${BASE_URL}/orders`, JSON.stringify(createOrderPayload()), { headers });
   const okCreate = check(createRes, { 'create 201': (r) => r.status === 201 });
   errorRate.add(!okCreate);
@@ -51,37 +102,55 @@ export default function () {
   if (okCreate) {
     const b = JSON.parse(createRes.body);
     const orderId = b.order.id;
-    const customerId = b.order.customerId;
 
-    // Get by id
-    const getRes = http.get(`${BASE_URL}/orders/${orderId}`);
+    // Get user's order by id (uses /orders/my/:id endpoint internally)
+    const getRes = http.get(`${BASE_URL}/orders/${orderId}`, { headers });
     check(getRes, { 'get 200': (r) => r.status === 200 });
 
-    // List
-    check(http.get(`${BASE_URL}/orders?page=1&limit=20`), { 'list 200': (r) => r.status === 200 });
+    // Get user's orders list (uses /orders/my endpoint)
+    check(http.get(`${BASE_URL}/orders/my?page=1&limit=20`, { headers }), { 
+      'my orders 200': (r) => r.status === 200 
+    });
 
-    // By customer
-    check(http.get(`${BASE_URL}/orders/customer/${customerId}?page=1&limit=10`), { 'by customer 200': (r) => r.status === 200 });
+    // Add item (only allowed when order is 'pending')
+    check(http.post(
+      `${BASE_URL}/orders/${orderId}/items`, 
+      JSON.stringify({ productId: 2, quantity: 1, price: 49.99 }), 
+      { headers }
+    ), { 'add item 200/201': (r) => r.status === 200 || r.status === 201 });
 
-    // Add item first (only allowed when order is 'pending')
-    check(http.post(`${BASE_URL}/orders/${orderId}/items`, JSON.stringify({ productId: 2, quantity: 1, price: 49.99 }), { headers }), { 'add item 200/201': (r) => r.status === 200 || r.status === 201 });
-
-    // Update status: pending -> confirmed (valid transition)
-    check(http.patch(`${BASE_URL}/orders/${orderId}/status`, JSON.stringify({ status: 'confirmed' }), { headers }), { 'status 200': (r) => r.status === 200 });
-
-    // Cancel
-    check(http.del(`${BASE_URL}/orders/${orderId}?reason=Stress%20test`), { 'cancel 200': (r) => r.status === 200 });
+    // Cancel own order
+    check(http.del(`${BASE_URL}/orders/${orderId}?reason=Stress%20test`, { headers }), { 
+      'cancel 200': (r) => r.status === 200 
+    });
   }
 
   sleep(Math.random() * 1.5 + 0.5);
 }
 
 export function setup() {
+  // Test authentication first
+  const testUser = TEST_USERS[0];
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: testUser.email, password: testUser.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status !== 200) {
+    console.warn('⚠️ Authentication may not be working. Tests may fail with 401.');
+    console.warn('Make sure test users are created in the database.');
+  } else {
+    console.log('✅ Authentication working');
+  }
+  
+  // Check API health
   const health = http.get(`${BASE_URL}/orders?page=1&limit=1`);
   if (health.status >= 500) {
     throw new Error('Orders API unhealthy');
   }
   console.log('✅ Orders API reachable');
+  console.log('🔐 Data isolation: Each VU uses separate user account');
   return { startTime: Date.now() };
 }
 

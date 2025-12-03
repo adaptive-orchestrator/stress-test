@@ -31,13 +31,65 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 // Payment methods
 const PAYMENT_METHODS = ['vnpay', 'momo', 'zalopay', 'bank_transfer', 'card'];
 
+// Test users - each VU gets a different user to test data isolation
+const TEST_USERS = [
+  { email: 'testuser1@example.com', password: 'test123456' },
+  { email: 'testuser2@example.com', password: 'test123456' },
+  { email: 'testuser3@example.com', password: 'test123456' },
+  { email: 'testuser4@example.com', password: 'test123456' },
+  { email: 'testuser5@example.com', password: 'test123456' },
+  { email: 'testuser6@example.com', password: 'test123456' },
+  { email: 'testuser7@example.com', password: 'test123456' },
+  { email: 'testuser8@example.com', password: 'test123456' },
+  { email: 'testuser9@example.com', password: 'test123456' },
+  { email: 'testuser10@example.com', password: 'test123456' },
+];
+
+// Cache for auth tokens
+const authCache = {};
+
+function getAuthHeaders(vuIndex) {
+  const userIndex = vuIndex % TEST_USERS.length;
+  const user = TEST_USERS[userIndex];
+  
+  // Try to use cached token
+  if (authCache[user.email]) {
+    return authCache[user.email];
+  }
+  
+  // Login to get token
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: user.email, password: user.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status === 200) {
+    try {
+      const body = JSON.parse(loginRes.body);
+      const token = body.token || body.access_token;
+      authCache[user.email] = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+      return authCache[user.email];
+    } catch (e) {
+      console.error('Failed to parse login response');
+    }
+  }
+  
+  // Fallback to no auth (for backward compatibility)
+  return { 'Content-Type': 'application/json' };
+}
+
 // Counter to generate unique invoice IDs per VU
 let invoiceCounter = 0;
 
 /**
  * Generate InitiatePaymentDto
- * Required: invoiceId, amount, method, customerId
+ * Required: invoiceId, amount, method
  * Optional: orderId, invoiceNumber (will be auto-generated if not provided)
+ * Note: customerId will be set by backend based on authenticated user
  */
 function initiatePaymentPayload() {
   // Generate unique invoiceId using VU id + counter + timestamp
@@ -48,7 +100,7 @@ function initiatePaymentPayload() {
     invoiceId: uniqueId,
     invoiceNumber: `INV-TEST-${uniqueId}`,
     orderId: Math.random() > 0.5 ? 1 + Math.floor(Math.random() * 500) : undefined,
-    customerId: 1 + Math.floor(Math.random() * 1000),
+    // Don't include customerId - backend will use authenticated user's ID
     amount: 50000 + Math.floor(Math.random() * 500000),
     method: PAYMENT_METHODS[Math.floor(Math.random() * PAYMENT_METHODS.length)],
   };
@@ -71,10 +123,10 @@ function confirmPaymentPayload(paymentId) {
 }
 
 export default function () {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = getAuthHeaders(__VU);
   let success = true;
 
-  // 1. Initiate payment
+  // 1. Initiate payment (authenticated)
   const initPayload = initiatePaymentPayload();
   const startInit = Date.now();
   const init = http.post(`${BASE_URL}/payments/initiate`, JSON.stringify(initPayload), { headers });
@@ -102,14 +154,11 @@ export default function () {
     }
   }
 
-  // 2. Get payment stats
-  check(http.get(`${BASE_URL}/payments/stats/summary`), { 'stats 200': (r) => r.status === 200 });
-
-  // 3. List payments with pagination (limit to 20 items per request to avoid gRPC overload)
-  const listRes = http.get(`${BASE_URL}/payments?page=1&limit=20`);
-  check(listRes, { 
-    'list 200': (r) => r.status === 200,
-    'list has pagination': (r) => {
+  // 2. Get my payments (user-specific)
+  const myPaymentsRes = http.get(`${BASE_URL}/payments/my?page=1&limit=20`, { headers });
+  check(myPaymentsRes, { 
+    'my payments 200': (r) => r.status === 200,
+    'my payments has data': (r) => {
       try {
         const body = JSON.parse(r.body);
         return body?.pagination && body?.payments;
@@ -119,7 +168,7 @@ export default function () {
     }
   });
 
-  // 4. Confirm payment (if initiated successfully)
+  // 3. Confirm payment (if initiated successfully)
   if (init.status === 201) {
     try {
       const body = JSON.parse(init.body);
@@ -140,9 +189,9 @@ export default function () {
           console.log(`Confirm failed: ${confirm.status} - ${confirm.body}`);
         }
 
-        // Get payment by ID
-        check(http.get(`${BASE_URL}/payments/${paymentId}`), { 
-          'get payment 200': (r) => r.status === 200 || r.status === 404 
+        // Get my payment by ID
+        check(http.get(`${BASE_URL}/payments/my/${paymentId}`, { headers }), { 
+          'get my payment 200': (r) => r.status === 200 || r.status === 404 
         });
       }
     } catch (e) {
@@ -150,9 +199,9 @@ export default function () {
     }
   }
 
-  // 5. Get payments by invoice
+  // 4. Get payments by invoice (authenticated)
   const invoiceId = initPayload.invoiceId;
-  check(http.get(`${BASE_URL}/payments/invoice/${invoiceId}`), { 
+  check(http.get(`${BASE_URL}/payments/invoice/${invoiceId}`, { headers }), { 
     'by invoice 200': (r) => r.status === 200 
   });
 
@@ -165,10 +214,32 @@ export function setup() {
   console.log(`Target API: ${BASE_URL}`);
   console.log(`==========================================\n`);
 
-  // Health check with pagination
-  const health = http.get(`${BASE_URL}/payments?page=1&limit=10`);
+  // Test authentication first
+  const testUser = TEST_USERS[0];
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: testUser.email, password: testUser.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status !== 200) {
+    console.warn('⚠️ Authentication may not be working. Tests may fail with 401.');
+    console.warn('Make sure test users are created in the database.');
+  } else {
+    console.log('✅ Authentication working');
+  }
+
+  // Health check with authentication
+  const headers = loginRes.status === 200 ? {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${JSON.parse(loginRes.body).token}`
+  } : { 'Content-Type': 'application/json' };
+  
+  const health = http.get(`${BASE_URL}/payments/my?page=1&limit=10`, { headers });
   if (health.status >= 500) throw new Error(`Payment API unhealthy: ${health.status}`);
-  console.log('✓ Payment API health check passed');
+  
+  console.log('✅ Payment API health check passed');
+  console.log('🔐 Data isolation: Each VU uses separate user account');
   return { startTime: Date.now() };
 }
 

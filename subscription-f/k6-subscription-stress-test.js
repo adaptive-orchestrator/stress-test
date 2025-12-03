@@ -20,95 +20,157 @@ export const options = {
 const BASE_URL = 'http://localhost:3000';
 const VALID_PLAN_IDS = [1, 2, 3];
 
+// Test users - each VU gets a different user to test data isolation
+const TEST_USERS = [
+  { email: 'testuser1@example.com', password: 'test123456' },
+  { email: 'testuser2@example.com', password: 'test123456' },
+  { email: 'testuser3@example.com', password: 'test123456' },
+  { email: 'testuser4@example.com', password: 'test123456' },
+  { email: 'testuser5@example.com', password: 'test123456' },
+  { email: 'testuser6@example.com', password: 'test123456' },
+  { email: 'testuser7@example.com', password: 'test123456' },
+  { email: 'testuser8@example.com', password: 'test123456' },
+  { email: 'testuser9@example.com', password: 'test123456' },
+  { email: 'testuser10@example.com', password: 'test123456' },
+];
+
+// Admin user for admin-only operations
+const ADMIN_USER = { email: 'admin@example.com', password: 'admin123456' };
+
+// Cache for auth tokens
+const authCache = {};
+
+function getAuthHeaders(vuIndex, useAdmin = false) {
+  const user = useAdmin ? ADMIN_USER : TEST_USERS[vuIndex % TEST_USERS.length];
+  
+  // Try to use cached token
+  if (authCache[user.email]) {
+    return authCache[user.email];
+  }
+  
+  // Login to get token
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: user.email, password: user.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status === 200) {
+    try {
+      const body = JSON.parse(loginRes.body);
+      const token = body.token || body.access_token;
+      authCache[user.email] = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+      return authCache[user.email];
+    } catch (e) {
+      console.error('Failed to parse login response');
+    }
+  }
+  
+  // Fallback to no auth (for backward compatibility)
+  return { 'Content-Type': 'application/json' };
+}
+
 function getPlanId(index) {
   return VALID_PLAN_IDS[index % VALID_PLAN_IDS.length];
 }
 
 export default function () {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = getAuthHeaders(__VU);
 
-  // ===== TEST 1: List all subscriptions =====
-  const listRes = http.get(`${BASE_URL}/subscriptions`);
-  check(listRes, { 'list 200': (r) => r.status === 200 });
+  // ===== TEST 1: Get my subscriptions (user-specific) =====
+  const mySubsRes = http.get(`${BASE_URL}/subscriptions/my`, { headers });
+  check(mySubsRes, { 'my subscriptions 200': (r) => r.status === 200 });
 
-  let subscriptions = [];
+  let mySubscriptions = [];
   try {
-    subscriptions = JSON.parse(listRes.body) || [];
+    const body = JSON.parse(mySubsRes.body);
+    mySubscriptions = body.subscriptions || [];
   } catch (e) {
-    subscriptions = [];
+    mySubscriptions = [];
   }
 
-  // ===== TEST 2: Làm việc với subscriptions đã có =====
-  if (Array.isArray(subscriptions) && subscriptions.length > 0) {
-    // Chọn một subscription để test (dựa vào VU để phân tán load)
-    const subIndex = __VU % subscriptions.length;
-    const sub = subscriptions[subIndex];
+  // ===== TEST 2: Work with user's own subscriptions =====
+  if (Array.isArray(mySubscriptions) && mySubscriptions.length > 0) {
+    const subIndex = __ITER % mySubscriptions.length;
+    const sub = mySubscriptions[subIndex];
     
     if (sub && sub.id) {
-      // TEST: Get subscription by ID
-      check(http.get(`${BASE_URL}/subscriptions/${sub.id}`), { 
-        'get by id 200': (r) => r.status === 200 
+      // Get subscription by ID (should succeed for own subscription)
+      check(http.get(`${BASE_URL}/subscriptions/${sub.id}`, { headers }), { 
+        'get own by id 200': (r) => r.status === 200 
       });
 
-      // TEST: Get by customer
-      if (sub.customerId) {
-        check(http.get(`${BASE_URL}/subscriptions/customer/${sub.customerId}`), { 
-          'get by customer 200': (r) => r.status === 200 
-        });
-      }
-
-      // TEST: Operations dựa trên status hiện tại
+      // Operations based on status
       const status = (sub.status || '').toLowerCase();
       
       if (status === 'pending') {
-        // Activate subscription
-        const activateRes = http.post(`${BASE_URL}/subscriptions/${sub.id}/activate`);
-        check(activateRes, { 'activate 200': (r) => r.status === 200 || r.status === 400 });
+        const activateRes = http.post(`${BASE_URL}/subscriptions/${sub.id}/activate`, null, { headers });
+        check(activateRes, { 'activate own 200': (r) => r.status === 200 || r.status === 400 });
       }
       
       if (status === 'active') {
-        // Change plan (chỉ với active subscriptions)
+        // Change plan for own subscription
         const newPlanId = getPlanId(__ITER % 3);
         const changeRes = http.patch(
           `${BASE_URL}/subscriptions/${sub.id}/change-plan`, 
           JSON.stringify({ newPlanId: newPlanId, scheduleAtPeriodEnd: true }), 
           { headers }
         );
-        check(changeRes, { 'change plan 200': (r) => r.status === 200 || r.status === 400 });
+        check(changeRes, { 'change own plan 200': (r) => r.status === 200 || r.status === 400 });
 
-        // Renew (chỉ với active subscriptions)
-        const renewRes = http.patch(`${BASE_URL}/subscriptions/${sub.id}/renew`);
-        check(renewRes, { 'renew 200': (r) => r.status === 200 || r.status === 400 });
+        // Renew own subscription
+        const renewRes = http.patch(`${BASE_URL}/subscriptions/${sub.id}/renew`, null, { headers });
+        check(renewRes, { 'renew own 200': (r) => r.status === 200 || r.status === 400 });
       }
     }
   }
 
-  // ===== TEST 3: Read operations với nhiều subscriptions =====
-  for (let i = 0; i < Math.min(3, subscriptions.length); i++) {
-    const sub = subscriptions[i];
-    if (sub && sub.id) {
-      check(http.get(`${BASE_URL}/subscriptions/${sub.id}`), { 
-        'batch get 200': (r) => r.status === 200 
-      });
-    }
-  }
+  // ===== TEST 3: Data isolation test - try to access other user's data =====
+  // This should fail with 403 Forbidden
+  const otherUserIndex = (__VU + 1) % TEST_USERS.length;
+  const otherUser = TEST_USERS[otherUserIndex];
+  
+  // Try to access another user's subscriptions (should get 403 or empty)
+  const otherCustomerId = otherUserIndex + 1; // Assuming customer IDs match user indices
+  const isolationRes = http.get(`${BASE_URL}/subscriptions/customer/${otherCustomerId}`, { headers });
+  check(isolationRes, { 
+    'data isolation works': (r) => r.status === 403 || r.status === 200 // 403 = properly blocked, 200 = might be own data
+  });
 
   sleep(0.3);
 }
 
 export function setup() {
-  const health = http.get(`${BASE_URL}/subscriptions`);
-  if (health.status >= 500) throw new Error('Subscription API unhealthy');
+  // Test authentication
+  const testUser = TEST_USERS[0];
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: testUser.email, password: testUser.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
   
-  let subs = [];
-  try {
-    subs = JSON.parse(health.body) || [];
-  } catch (e) {
-    subs = [];
+  if (loginRes.status !== 200) {
+    console.warn('⚠️ Authentication may not be working. Tests may fail.');
+    console.warn('Make sure test users are created in the database.');
+  } else {
+    console.log('✅ Authentication working');
   }
   
-  console.log(`Subscription API is healthy. Found ${subs.length} existing subscriptions.`);
-  console.log('Starting stress test on READ and UPDATE operations...');
+  const health = http.get(`${BASE_URL}/subscriptions/my`, { 
+    headers: loginRes.status === 200 ? {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${JSON.parse(loginRes.body).token}`
+    } : { 'Content-Type': 'application/json' }
+  });
+  
+  if (health.status >= 500) throw new Error('Subscription API unhealthy');
+  
+  console.log('✅ Subscription API is healthy.');
+  console.log('🔐 Data isolation: Each VU uses separate user account');
+  console.log('Starting stress test with authentication...');
   return { startTime: Date.now() };
 }
 

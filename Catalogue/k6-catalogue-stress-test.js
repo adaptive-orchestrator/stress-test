@@ -1,9 +1,11 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { Rate } from 'k6/metrics';
+import { Rate, Counter } from 'k6/metrics';
 
 // Custom metrics
 const errorRate = new Rate('errors');
+const crossUserIsolationSuccess = new Rate('cross_user_isolation_success');
+const productsCreated = new Counter('products_created');
 
 // Test configuration
 export const options = {
@@ -24,13 +26,38 @@ export const options = {
     { duration: '30s', target: 0 },   // Giảm xuống 0
   ],
   thresholds: {
-    http_req_duration: ['p(95)<500'], // 95% requests phải < 500ms
-    http_req_failed: ['rate<0.1'],    // Error rate phải < 10%
-    errors: ['rate<0.1'],
+    'http_req_duration{name:!cross_user_isolation_check}': ['p(95)<500'], // 95% requests phải < 500ms (exclude isolation checks)
+    'http_req_failed{name:!cross_user_isolation_check}': ['rate<0.1'],    // Error rate phải < 10% (exclude isolation checks)
+    'errors': ['rate<0.1'],
+    'cross_user_isolation_success': ['rate>0.9'], // Cross-user isolation should work 90%+ of the time
   },
 };
 
 const BASE_URL = 'http://localhost:3000';
+
+// Test users for authentication - each user should only see their own products
+const TEST_USERS = [
+  { email: 'stresstest1@demo.com', password: 'Test@123456', name: 'Stress Test User 1', role: 'admin' },
+  { email: 'stresstest2@demo.com', password: 'Test@123456', name: 'Stress Test User 2', role: 'admin' },
+  { email: 'stresstest3@demo.com', password: 'Test@123456', name: 'Stress Test User 3', role: 'admin' },
+  { email: 'stresstest4@demo.com', password: 'Test@123456', name: 'Stress Test User 4', role: 'user' },
+  { email: 'stresstest5@demo.com', password: 'Test@123456', name: 'Stress Test User 5', role: 'user' },
+];
+
+// Auth token cache - will be populated in setup
+let authTokens = {};
+
+// Get auth headers for a VU
+function getAuthHeaders(vuIndex) {
+  const userIndex = vuIndex % TEST_USERS.length;
+  const user = TEST_USERS[userIndex];
+  const token = authTokens[user.email];
+  
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : '',
+  };
+}
 
 // Sample products data
 const products = [
@@ -126,7 +153,20 @@ const products = [
   },
 ];
 
-export default function () {
+export default function (data) {
+  // Get tokens from setup data
+  authTokens = data.tokens || {};
+  
+  // Get authenticated headers for current VU
+  const headers = getAuthHeaders(__VU);
+  
+  // Skip if not authenticated
+  if (!headers.Authorization || headers.Authorization === 'Bearer ') {
+    console.log(`⚠️ VU ${__VU}: No auth token, skipping...`);
+    sleep(1);
+    return;
+  }
+  
   // Chọn random một product từ danh sách
   const product = products[Math.floor(Math.random() * products.length)];
   
@@ -137,11 +177,7 @@ export default function () {
     name: `${product.name} (Test ${__VU}-${__ITER})`,
   };
 
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-
-  // Test 1: CREATE Product
+  // Test 1: CREATE Product (with authentication - ownerId set from JWT)
   const createResponse = http.post(
     `${BASE_URL}/catalogue/products`,
     JSON.stringify(uniqueProduct),
@@ -163,11 +199,34 @@ export default function () {
     const createdProduct = responseBody.product;
     const productId = createdProduct.id;
 
-    // Test 2: GET Product by ID
-    const getResponse = http.get(`${BASE_URL}/catalogue/products/${productId}`);
+    // Test 2: GET My Products (user-specific endpoint)
+    const myProductsResponse = http.get(`${BASE_URL}/catalogue/products/my?page=1&limit=20`, { headers });
     
-    const getSuccess = check(getResponse, {
-      'get status is 200': (r) => r.status === 200,
+    check(myProductsResponse, {
+      'my products status is 200': (r) => r.status === 200,
+      'my products returns array': (r) => {
+        try {
+          const body = JSON.parse(r.body);
+          return body.products && Array.isArray(body.products);
+        } catch (e) {
+          return false;
+        }
+      },
+      'my products contains created product': (r) => {
+        try {
+          const body = JSON.parse(r.body);
+          return body.products.some(p => p.id === productId);
+        } catch (e) {
+          return false;
+        }
+      },
+    });
+
+    // Test 3: GET My Product by ID
+    const getMyResponse = http.get(`${BASE_URL}/catalogue/products/my/${productId}`, { headers });
+    
+    const getSuccess = check(getMyResponse, {
+      'get my product status is 200': (r) => r.status === 200,
       'get returns correct product': (r) => {
         try {
           const body = JSON.parse(r.body);
@@ -180,30 +239,7 @@ export default function () {
 
     errorRate.add(!getSuccess);
 
-    // Test 3: GET All Products (List with pagination)
-    const listResponse = http.get(`${BASE_URL}/catalogue/products?page=1&limit=20`);
-    
-    check(listResponse, {
-      'list status is 200': (r) => r.status === 200,
-      'list returns array': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          return body.products && Array.isArray(body.products) && body.products.length > 0;
-        } catch (e) {
-          return false;
-        }
-      },
-      'list has pagination metadata': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          return body.total !== undefined && body.page === 1 && body.limit === 20 && body.totalPages !== undefined;
-        } catch (e) {
-          return false;
-        }
-      },
-    });
-
-    // Test 4: UPDATE Product (PUT - phải gửi full object)
+    // Test 4: UPDATE Product (with ownership check)
     const updateData = {
       ...uniqueProduct,
       price: uniqueProduct.price + 100,
@@ -228,7 +264,33 @@ export default function () {
       },
     });
 
-    // Note: API không có DELETE endpoint
+    // Test 5: Cross-user isolation - try to access another user's product should fail
+    // Switch to different user and try to access this product
+    const otherUserIndex = (__VU + 1) % TEST_USERS.length;
+    const otherHeaders = getAuthHeaders(otherUserIndex);
+    
+    if (otherHeaders.Authorization && otherHeaders.Authorization !== 'Bearer ' && otherHeaders.Authorization !== headers.Authorization) {
+      // Use tags to identify this request type - expected to return 403/404/401
+      const crossAccessResponse = http.get(`${BASE_URL}/catalogue/products/my/${productId}`, { 
+        headers: otherHeaders,
+        tags: { name: 'cross_user_isolation_check' }
+      });
+      
+      // This check expects the request to be denied (403, 404, or 401)
+      const isolationWorks = crossAccessResponse.status === 403 || crossAccessResponse.status === 404 || crossAccessResponse.status === 401;
+      
+      check(crossAccessResponse, {
+        'cross-user access denied (403 or 404)': () => isolationWorks,
+      });
+      
+      // Track isolation success rate separately
+      crossUserIsolationSuccess.add(isolationWorks);
+    }
+  }
+
+  // Track successful product creation
+  if (createSuccess) {
+    productsCreated.add(1);
   }
 
   // Sleep ngắn giữa các iterations (0.5 - 2 giây)
@@ -237,17 +299,72 @@ export default function () {
 
 // Setup function - chạy một lần trước test
 export function setup() {
-  console.log('🚀 Starting Catalogue API Stress Test...');
+  console.log('🚀 Starting Catalogue API Stress Test with User Isolation...');
   console.log(`📍 Base URL: ${BASE_URL}`);
+  console.log(`👥 Test Users: ${TEST_USERS.map(u => u.email).join(', ')}`);
   
-  // Check if API is reachable
-  const healthCheck = http.get(`${BASE_URL}/catalogue/products?page=1&limit=20`);
-  if (healthCheck.status !== 200) {
-    throw new Error('API không phản hồi! Hãy kiểm tra server đang chạy.');
+  const tokens = {};
+  
+  // Register and login all test users
+  for (const user of TEST_USERS) {
+    // Try to login first
+    let loginRes = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
+      email: user.email,
+      password: user.password,
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    // If login fails (401/404), try to signup
+    if (loginRes.status !== 200 && loginRes.status !== 201) {
+      console.log(`⚠️ Login failed for ${user.email} (${loginRes.status}), attempting signup...`);
+      
+      const signupRes = http.post(`${BASE_URL}/auth/signup`, JSON.stringify({
+        email: user.email,
+        password: user.password,
+        name: user.name,
+        role: user.role,
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (signupRes.status === 201 || signupRes.status === 200) {
+        console.log(`✅ Signed up: ${user.email}`);
+        // Try login again after signup
+        loginRes = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
+          email: user.email,
+          password: user.password,
+        }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        console.log(`❌ Signup failed for ${user.email}: ${signupRes.status} - ${signupRes.body}`);
+      }
+    }
+    
+    if (loginRes.status === 200 || loginRes.status === 201) {
+      try {
+        const body = JSON.parse(loginRes.body);
+        tokens[user.email] = body.access_token || body.token || body.accessToken;
+        console.log(`✅ Logged in: ${user.email}`);
+      } catch (e) {
+        console.log(`❌ Failed to parse login response for ${user.email}: ${e.message}`);
+      }
+    } else {
+      console.log(`❌ Final login failed for ${user.email}: ${loginRes.status}`);
+    }
   }
   
-  console.log('✅ API is ready');
-  return { timestamp: new Date().toISOString() };
+  // Check if API is reachable
+  const healthCheck = http.get(`${BASE_URL}/catalogue/plans`);
+  if (healthCheck.status !== 200) {
+    console.log(`⚠️ API health check failed: ${healthCheck.status}. Some tests might fail.`);
+  } else {
+    console.log('✅ API health check passed');
+  }
+  
+  console.log(`✅ Setup completed. ${Object.keys(tokens).length}/${TEST_USERS.length} users authenticated.`);
+  return { timestamp: new Date().toISOString(), tokens };
 }
 
 // Calculate recommended K8s resources based on test results
