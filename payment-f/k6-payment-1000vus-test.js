@@ -43,21 +43,30 @@ const PAYMENT_METHODS = ['vnpay', 'momo', 'zalopay', 'bank_transfer', 'card'];
 // Counter to generate unique invoice IDs per VU
 let invoiceCounter = 0;
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 /**
  * Generate InitiatePaymentDto
  * Required: invoiceId, amount, method
  * Optional: orderId, customerId
  */
 function generatePaymentPayload() {
-  // Generate unique invoiceId using VU id + counter + timestamp
+  // Generate unique invoiceId as UUID
   invoiceCounter++;
-  const uniqueId = Date.now() * 1000 + (__VU || 1) * 100 + (invoiceCounter % 100);
+  const uniqueId = randomUUID();
   
   return {
     invoiceId: uniqueId,
-    invoiceNumber: `INV-TEST-${uniqueId}`,
-    orderId: Math.random() > 0.5 ? 1 + Math.floor(Math.random() * 1000) : undefined,
-    customerId: 1 + Math.floor(Math.random() * 1000),
+    invoiceNumber: `INV-TEST-${Date.now()}-${invoiceCounter}`,
+    orderId: Math.random() > 0.5 ? randomUUID() : undefined,
+    customerId: randomUUID(),
     amount: 50000 + Math.floor(Math.random() * 500000),
     method: PAYMENT_METHODS[Math.floor(Math.random() * PAYMENT_METHODS.length)],
   };

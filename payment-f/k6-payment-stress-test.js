@@ -85,6 +85,15 @@ function getAuthHeaders(vuIndex) {
 // Counter to generate unique invoice IDs per VU
 let invoiceCounter = 0;
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 /**
  * Generate InitiatePaymentDto
  * Required: invoiceId, amount, method
@@ -92,14 +101,14 @@ let invoiceCounter = 0;
  * Note: customerId will be set by backend based on authenticated user
  */
 function initiatePaymentPayload() {
-  // Generate unique invoiceId using VU id + counter + timestamp
+  // Generate unique invoiceId as UUID
   invoiceCounter++;
-  const uniqueId = Date.now() * 1000 + (__VU || 1) * 100 + (invoiceCounter % 100);
+  const uniqueId = randomUUID();
   
   return {
     invoiceId: uniqueId,
-    invoiceNumber: `INV-TEST-${uniqueId}`,
-    orderId: Math.random() > 0.5 ? 1 + Math.floor(Math.random() * 500) : undefined,
+    invoiceNumber: `INV-TEST-${Date.now()}-${invoiceCounter}`,
+    orderId: Math.random() > 0.5 ? randomUUID() : undefined,
     // Don't include customerId - backend will use authenticated user's ID
     amount: 50000 + Math.floor(Math.random() * 500000),
     method: PAYMENT_METHODS[Math.floor(Math.random() * PAYMENT_METHODS.length)],

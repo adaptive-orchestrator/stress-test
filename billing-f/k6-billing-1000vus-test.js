@@ -53,8 +53,28 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
-// Product IDs pool (simulate existing products)
-const PRODUCT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Product UUIDs pool (simulate existing products)
+const PRODUCT_IDS = [
+  'p0000001-0000-0000-0000-000000000001',
+  'p0000001-0000-0000-0000-000000000002',
+  'p0000001-0000-0000-0000-000000000003',
+  'p0000001-0000-0000-0000-000000000004',
+  'p0000001-0000-0000-0000-000000000005',
+  'p0000001-0000-0000-0000-000000000006',
+  'p0000001-0000-0000-0000-000000000007',
+  'p0000001-0000-0000-0000-000000000008',
+  'p0000001-0000-0000-0000-000000000009',
+  'p0000001-0000-0000-0000-000000000010'
+];
 
 // Invoice statuses (lowercase as per billing-svc)
 const INVOICE_STATUSES = ['draft', 'sent', 'paid', 'overdue', 'cancelled'];
@@ -73,7 +93,7 @@ function generateOrderPayload() {
   }
 
   return {
-    customerId: 1 + Math.floor(Math.random() * 5000),
+    customerId: randomUUID(),
     items: items,
     shippingAddress: `${Math.floor(Math.random() * 999) + 1} Test Street, City ${Math.floor(Math.random() * 100)}`,
     notes: `Stress test order - ${Date.now()}`,
@@ -112,7 +132,7 @@ function generateInvoicePayload() {
   const billingPeriods = ['monthly', 'yearly', 'onetime'];
 
   return {
-    customerId: 1 + Math.floor(Math.random() * 5000),
+    customerId: randomUUID(),
     orderNumber: `API-INV-${Date.now()}-${Math.random().toString(36).substring(7)}`,
     items: items,
     subtotal: subtotal,

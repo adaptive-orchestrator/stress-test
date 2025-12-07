@@ -31,6 +31,15 @@ export const options = {
 
 const BASE_URL = 'http://localhost:3000';
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export function setup() {
   const headers = { 'Content-Type': 'application/json' };
   
@@ -114,7 +123,7 @@ export default function (data) {
     
   } else if (operation < 0.75) {
     // 20% - Get user addons
-    const subscriptionId = Math.floor(Math.random() * 100) + 1;
+    const subscriptionId = randomUUID();
     const page = Math.floor(Math.random() * 2) + 1;
     
     const start = Date.now();
@@ -129,8 +138,8 @@ export default function (data) {
     if (addons.length > 0) {
       const randomAddon = addons[Math.floor(Math.random() * addons.length)];
       const addonKey = randomAddon.addonKey || randomAddon.addon_key || 'extra_storage';
-      const subscriptionId = Math.floor(Math.random() * 100) + 1;
-      const customerId = Math.floor(Math.random() * 1000) + 1;
+      const subscriptionId = randomUUID();
+      const customerId = randomUUID();
       
       const start = Date.now();
       const res = http.post(
@@ -151,7 +160,7 @@ export default function (data) {
     
   } else {
     // 10% - Cancel addon
-    const subscriptionId = Math.floor(Math.random() * 100) + 1;
+    const subscriptionId = randomUUID();
     const userAddonsRes = http.get(`${BASE_URL}/addons/user/${subscriptionId}?page=1&limit=5`);
     
     let userAddons = [];

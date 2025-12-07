@@ -32,6 +32,15 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export function setup() {
   console.log('\n' + '='.repeat(60));
   console.log('   ADDON SERVICE STRESS TEST');
@@ -86,8 +95,9 @@ export function setup() {
     }
   }
 
-  // Get user addons for subscriptionId 1
-  const userAddonsRes = http.get(`${BASE_URL}/addons/user/1`);
+  // Get user addons for subscriptionId (using UUID)
+  const sampleSubscriptionId = randomUUID();
+  const userAddonsRes = http.get(`${BASE_URL}/addons/user/${sampleSubscriptionId}`);
   let userAddons = [];
   if (userAddonsRes.status === 200) {
     try {
@@ -137,8 +147,8 @@ export default function (data) {
   if (currentAddons.length > 0) {
     const randomAddon = currentAddons[Math.floor(Math.random() * currentAddons.length)];
     const addonKey = randomAddon.addonKey || randomAddon.addon_key || randomAddon.key;
-    const subscriptionId = Math.floor(Math.random() * 10) + 1;
-    const customerId = Math.floor(Math.random() * 100) + 1;
+    const subscriptionId = randomUUID();
+    const customerId = randomUUID();
 
     if (addonKey) {
       const purchaseRes = http.post(
@@ -157,7 +167,7 @@ export default function (data) {
   }
 
   // Test 4: Get user addons with pagination
-  const subscriptionId = Math.floor(Math.random() * 10) + 1;
+  const subscriptionId = randomUUID();
   const userPage = Math.floor(Math.random() * 2) + 1;
   const userAddonsRes = http.get(`${BASE_URL}/addons/user/${subscriptionId}?page=${userPage}&limit=10`);
   check(userAddonsRes, { 

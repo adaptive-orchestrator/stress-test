@@ -74,18 +74,18 @@ function getAuthHeaders(vuIndex) {
   return { 'Content-Type': 'application/json' };
 }
 
-function createItem() {
+function createItem(productId) {
   return {
-    productId: 1,
+    productId: productId || 'p0000001-0000-0000-0000-000000000001', // Default UUID for product
     quantity: 2,
     price: 99.99,
   };
 }
 
-function createOrderPayload() {
+function createOrderPayload(productId) {
   // Don't specify customerId - backend will use authenticated user's ID
   return {
-    items: [createItem()],
+    items: [createItem(productId)],
     notes: 'Stress test order',
     shippingAddress: '123 Test Street, District 1, Ho Chi Minh City',
   };
@@ -115,7 +115,7 @@ export default function () {
     // Add item (only allowed when order is 'pending')
     check(http.post(
       `${BASE_URL}/orders/${orderId}/items`, 
-      JSON.stringify({ productId: 2, quantity: 1, price: 49.99 }), 
+      JSON.stringify({ productId: 'p0000001-0000-0000-0000-000000000002', quantity: 1, price: 49.99 }), 
       { headers }
     ), { 'add item 200/201': (r) => r.status === 200 || r.status === 201 });
 

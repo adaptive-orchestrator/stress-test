@@ -31,6 +31,15 @@ const PAYMENT_METHODS = ['vnpay', 'momo', 'zalopay'];
 let skuCounter = 0;
 let invoiceCounter = 0;
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function generateProduct() {
   skuCounter++;
   const uniqueId = `${Date.now()}-${__VU || 1}-${skuCounter}`;
@@ -72,7 +81,7 @@ export default function (data) {
   const customerIds = data?.customerIds || [];
   const customerId = customerIds.length > 0 
     ? customerIds[Math.floor(Math.random() * customerIds.length)]
-    : 1;
+    : randomUUID();
     
   let productId = null;
   let productPrice = null;

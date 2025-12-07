@@ -20,7 +20,16 @@ export const options = {
 const BASE_URL = 'http://localhost:3000';
 const headers = { 'Content-Type': 'application/json' };
 
-function randomProductId() { return 1 + Math.floor(Math.random()*1000); }
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function randomProductId() { return randomUUID(); }
 
 function buildProduct() {
   const n = Math.floor(Math.random()*100000);
@@ -63,12 +72,12 @@ export default function (data) {
   const adjust = { quantity: (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random()*5)), reason: 'adjustment' };
   check(http.post(`${BASE_URL}/inventory/product/${pid}/adjust`, JSON.stringify(adjust), { headers }), { 'adjust 200/400': (r) => r.status === 200 || r.status === 400 });
 
-  // Reserve (ReserveStockDto requires numeric orderId and customerId)
+  // Reserve (ReserveStockDto requires UUID orderId and customerId)
   const reserve = {
     productId: pid,
     quantity: 1 + Math.floor(Math.random()*3),
-    orderId: 1000 + Math.floor(Math.random()*10000),
-    customerId: 1 + Math.floor(Math.random()*1000),
+    orderId: randomUUID(),
+    customerId: randomUUID(),
   };
   const res = http.post(`${BASE_URL}/inventory/reserve`, JSON.stringify(reserve), { headers });
   check(res, { 'reserve 201/400': (r) => r.status === 201 || r.status === 400 });

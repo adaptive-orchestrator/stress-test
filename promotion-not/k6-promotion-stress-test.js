@@ -19,6 +19,15 @@ export const options = {
 
 const BASE_URL = 'http://localhost:3000';
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function createData() {
   return { code: `CODE${Math.floor(Math.random()*10000)}`, discountType: 'percentage', discountValue: 10 + Math.floor(Math.random()*30), status: 'active' };
 }
@@ -47,10 +56,10 @@ export default function () {
     check(http.patch(`${BASE_URL}/promotions/${id}`, JSON.stringify({ status: 'inactive' }), { headers }), { 'update 200/404': (r) => r.status === 200 || r.status === 404 });
 
     // Validate
-    check(http.post(`${BASE_URL}/promotions/validate`, JSON.stringify({ code, customerId: 1, planId: 1 }), { headers }), { 'validate 200/400': (r) => r.status === 200 || r.status === 400 });
+    check(http.post(`${BASE_URL}/promotions/validate`, JSON.stringify({ code, customerId: randomUUID(), planId: 'p0000001-0000-0000-0000-000000000001' }), { headers }), { 'validate 200/400': (r) => r.status === 200 || r.status === 400 });
 
     // Apply
-    check(http.post(`${BASE_URL}/promotions/apply`, JSON.stringify({ code, subscriptionId: 1 }), { headers }), { 'apply 200/400': (r) => r.status === 200 || r.status === 400 });
+    check(http.post(`${BASE_URL}/promotions/apply`, JSON.stringify({ code, subscriptionId: randomUUID() }), { headers }), { 'apply 200/400': (r) => r.status === 200 || r.status === 400 });
 
     // Usage
     check(http.get(`${BASE_URL}/promotions/usage/history?promotionId=${id}&limit=10&offset=0`), { 'usage 200': (r) => r.status === 200 });

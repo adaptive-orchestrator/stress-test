@@ -27,8 +27,28 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
-// Product IDs pool
-const PRODUCT_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Product UUIDs pool
+const PRODUCT_IDS = [
+  'p0000001-0000-0000-0000-000000000001',
+  'p0000001-0000-0000-0000-000000000002',
+  'p0000001-0000-0000-0000-000000000003',
+  'p0000001-0000-0000-0000-000000000004',
+  'p0000001-0000-0000-0000-000000000005',
+  'p0000001-0000-0000-0000-000000000006',
+  'p0000001-0000-0000-0000-000000000007',
+  'p0000001-0000-0000-0000-000000000008',
+  'p0000001-0000-0000-0000-000000000009',
+  'p0000001-0000-0000-0000-000000000010'
+];
 
 /**
  * Generate invoice payload matching CreateInvoiceDto
@@ -64,7 +84,7 @@ function invoicePayload() {
   const dueDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
   return {
-    customerId: 1 + Math.floor(Math.random() * 1000),
+    customerId: randomUUID(),
     orderNumber: `INV-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
     items: items,
     subtotal: subtotal,

@@ -18,7 +18,13 @@ export const options = {
 };
 
 const BASE_URL = 'http://localhost:3000';
-const VALID_PLAN_IDS = [1, 2, 3];
+
+// Valid plan UUIDs - should match seeded data
+const VALID_PLAN_IDS = [
+  'p0000001-0000-0000-0000-000000000001',
+  'p0000001-0000-0000-0000-000000000002',
+  'p0000001-0000-0000-0000-000000000003'
+];
 
 // Test users - each VU gets a different user to test data isolation
 const TEST_USERS = [

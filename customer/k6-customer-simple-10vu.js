@@ -12,6 +12,15 @@ export const options = {
 
 const BASE_URL = 'http://localhost:3000';
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // Will be populated in setup()
 let customerEmails = [];
 let customerIds = [];
@@ -43,7 +52,7 @@ export default function (data) {
   // Get by ID - use real ID if available
   const id = ids.length > 0 
     ? ids[Math.floor(Math.random() * ids.length)] 
-    : 1;
+    : randomUUID();
   const getRes = http.get(`${BASE_URL}/customers/${id}`);
   check(getRes, { '✓ Get: 200': (r) => r.status === 200 });
 

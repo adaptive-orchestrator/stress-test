@@ -16,12 +16,21 @@ export const options = {
 
 const BASE_URL = 'http://localhost:3000';
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 function createOrderPayload() {
   return {
-    customerId: 1,
+    customerId: randomUUID(),
     items: [
       { 
-        productId: 1,
+        productId: 'p0000001-0000-0000-0000-000000000001',
         quantity: 2, 
         price: 99.99
       },
@@ -77,7 +86,7 @@ export default function () {
     // Add item first (only allowed when order is 'pending')
     const addItemRes = http.post(
       `${BASE_URL}/orders/${orderId}/items`,
-      JSON.stringify({ productId: 2, quantity: 1, price: 49.99 }),
+      JSON.stringify({ productId: 'p0000001-0000-0000-0000-000000000002', quantity: 1, price: 49.99 }),
       { headers, tags: { name: 'AddItem' } }
     );
     const addItemOk = check(addItemRes, { '✓ AddItem: 200/201': (r) => r.status === 200 || r.status === 201 });

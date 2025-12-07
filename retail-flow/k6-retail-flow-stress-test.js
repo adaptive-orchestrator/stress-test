@@ -65,6 +65,15 @@ export const options = {
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
+// Generate a random UUID for testing
+function randomUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 // ============================================================================
 // DATA GENERATORS
 // ============================================================================
@@ -193,11 +202,11 @@ export default function (data) {
   const flowStartTime = Date.now();
   let flowSuccess = true;
   
-  // Use seeded customer ID if available, otherwise random
+  // Use seeded customer ID if available, otherwise random UUID
   const customerIds = data?.customerIds || [];
   const customerId = customerIds.length > 0 
     ? customerIds[Math.floor(Math.random() * customerIds.length)]
-    : 1 + Math.floor(Math.random() * 100);
+    : randomUUID();
   
   let productId = null;
   let productPrice = null;
