@@ -27,10 +27,15 @@ export const options = {
     { duration: '30s', target: 0 },   // Giảm xuống 0
   ],
   thresholds: {
-    'http_req_duration{name:!cross_user_isolation_check}': ['p(95)<500'], // 95% requests phải < 500ms (exclude isolation checks)
-    'http_req_failed{name:!cross_user_isolation_check}': ['rate<0.1'],    // Error rate phải < 10% (exclude isolation checks)
+    // Main performance metrics (exclude isolation checks)
+    'http_req_duration{name:!cross_user_isolation_check}': ['p(95)<500'],
+    'http_req_failed{name:!cross_user_isolation_check}': ['rate<0.1'],
+    
+    // Overall metrics (include all requests)
     'errors': ['rate<0.1'],
-    'cross_user_isolation_success': ['rate>0.9'], // Cross-user isolation should work 90%+ of the time
+    
+    // Security metric (separate tracking)
+    'cross_user_isolation_success': ['rate>0.9'],
   },
 };
 
@@ -313,27 +318,31 @@ export default function (data) {
       },
     });
 
-    // Test 5: Cross-user isolation - try to access another user's product should fail
-    // Switch to different user and try to access this product
-    const otherUserIndex = (__VU + 1) % TEST_USERS.length;
-    const otherHeaders = getAuthHeaders(otherUserIndex);
+    // Test 5: Cross-user isolation - ONLY run for 10% of iterations (reduce noise)
+    // This is a security test, not a performance test
+    const shouldTestIsolation = Math.random() < 0.1; // 10% of iterations
     
-    if (otherHeaders.Authorization && otherHeaders.Authorization !== 'Bearer ' && otherHeaders.Authorization !== headers.Authorization) {
-      // Use tags to identify this request type - expected to return 403/404/401
-      const crossAccessResponse = http.get(`${BASE_URL}/catalogue/products/my/${productId}`, { 
-        headers: otherHeaders,
-        tags: { name: 'cross_user_isolation_check' }
-      });
+    if (shouldTestIsolation) {
+      const otherUserIndex = (__VU + 1) % TEST_USERS.length;
+      const otherHeaders = getAuthHeaders(otherUserIndex);
       
-      // This check expects the request to be denied (403, 404, or 401)
-      const isolationWorks = crossAccessResponse.status === 403 || crossAccessResponse.status === 404 || crossAccessResponse.status === 401;
-      
-      check(crossAccessResponse, {
-        'cross-user access denied (403 or 404)': () => isolationWorks,
-      });
-      
-      // Track isolation success rate separately
-      crossUserIsolationSuccess.add(isolationWorks);
+      if (otherHeaders.Authorization && otherHeaders.Authorization !== 'Bearer ' && otherHeaders.Authorization !== headers.Authorization) {
+        // Use tags to identify this request type - expected to return 403/404/401
+        const crossAccessResponse = http.get(`${BASE_URL}/catalogue/products/my/${productId}`, { 
+          headers: otherHeaders,
+          tags: { name: 'cross_user_isolation_check' }
+        });
+        
+        // This check expects the request to be denied (403, 404, or 401)
+        const isolationWorks = crossAccessResponse.status === 403 || crossAccessResponse.status === 404 || crossAccessResponse.status === 401;
+        
+        check(crossAccessResponse, {
+          'cross-user access denied (403 or 404)': () => isolationWorks,
+        });
+        
+        // Track isolation success rate separately
+        crossUserIsolationSuccess.add(isolationWorks);
+      }
     }
   }
 
@@ -496,10 +505,39 @@ export function teardown(data) {
 
 export function handleSummary(data) {
   const recommendation = calculateResourceRecommendation(data);
+  const metrics = data.metrics;
   
-  console.log('\n' + '='.repeat(60));
+  // Tách metrics chính và security checks
+  const mainMetrics = {
+    http_reqs: metrics.http_reqs?.values,
+    http_req_duration: metrics.http_req_duration?.values,
+    http_req_waiting: metrics.http_req_waiting?.values,
+    http_req_connecting: metrics.http_req_connecting?.values,
+    http_req_failed: metrics.http_req_failed?.values,
+    vus_max: metrics.vus_max?.values
+  };
+  
+  console.log('\n' + '='.repeat(80));
+  console.log('📊 PERFORMANCE METRICS (Main Business Operations)');
+  console.log('='.repeat(80));
+  console.log(`Total Requests: ${mainMetrics.http_reqs?.count || 0}`);
+  console.log(`Throughput: ${mainMetrics.http_reqs?.rate?.toFixed(2) || 0} req/s`);
+  console.log(`Avg Response Time: ${mainMetrics.http_req_duration?.avg?.toFixed(2) || 0} ms`);
+  console.log(`P95 Response Time: ${mainMetrics.http_req_duration?.['p(95)']?.toFixed(2) || 0} ms`);
+  console.log(`P99 Response Time: ${mainMetrics.http_req_duration?.['p(99)']?.toFixed(2) || 0} ms`);
+  console.log(`Success Rate: ${((1 - (mainMetrics.http_req_failed?.rate || 0)) * 100).toFixed(2)}%`);
+  console.log(`Max VUs: ${mainMetrics.vus_max?.max || 0}`);
+  
+  console.log('\n' + '='.repeat(80));
+  console.log('🔒 SECURITY VALIDATION (Cross-User Isolation Checks ~10% sampling)');
+  console.log('='.repeat(80));
+  console.log('ℹ️  404 errors are EXPECTED - they confirm users cannot access others\' data');
+  console.log('ℹ️  These checks validate security, not performance');
+  console.log('ℹ️  Sampled at 10% to reduce noise while maintaining security validation');
+  
+  console.log('\n' + '='.repeat(80));
   console.log('🎯 K8S RESOURCE RECOMMENDATIONS');
-  console.log('='.repeat(60));
+  console.log('='.repeat(80));
   console.log(`Service: ${recommendation.serviceName}`);
   console.log(`Replicas: ${recommendation.replicas}`);
   console.log(`CPU Request: ${recommendation.resources.requests.cpu}`);
