@@ -1,0 +1,424 @@
+{
+  "test": "Customer API - 1000 VUs Stress Test",
+  "timestamp": "2025-12-08T11:53:35.511Z",
+  "description": "Customer read-heavy operations with pagination and insights",
+  "testDuration": "511.73s",
+  "metrics": {
+    "total_requests": 124471,
+    "failed_requests": 0,
+    "failed_rate": "0.00%",
+    "avg_response_time": "134.05",
+    "min_response_time": "0.00",
+    "med_response_time": "25.74",
+    "max_response_time": "2082.17",
+    "p90_response_time": "429.09",
+    "p95_response_time": "586.29",
+    "p99_response_time": "1091.10",
+    "avg_waiting_time": "133.83",
+    "p95_waiting_time": "585.89",
+    "avg_blocked_time": "0.01",
+    "avg_connecting_time": "0.01",
+    "data_sent": "12.81 MB",
+    "data_received": "104.46 MB",
+    "requests_per_second": "243.24",
+    "customers_read": 78201,
+    "customer_insights_read": 14266,
+    "error_count": 0,
+    "success_rate": "100.00%",
+    "max_vus": 500,
+    "iterations_completed": 71082,
+    "avg_iteration_duration": "2233.93"
+  },
+  "k8sRecommendation": {
+    "serviceName": "customer-svc",
+    "replicas": 4,
+    "resources": {
+      "requests": {
+        "cpu": "100m",
+        "memory": "384Mi"
+      },
+      "limits": {
+        "cpu": "500m",
+        "memory": "768Mi"
+      }
+    },
+    "metrics": {
+      "maxVUs": 500,
+      "avgResponseTime": "134.05",
+      "p95ResponseTime": "586.29",
+      "p99ResponseTime": "1091.10",
+      "errorRate": "0.00",
+      "throughput": "243.24"
+    }
+  },
+  "rawData": {
+    "root_group": {
+      "path": "",
+      "id": "d41d8cd98f00b204e9800998ecf8427e",
+      "groups": [],
+      "checks": [
+          {
+            "passes": 42636,
+            "fails": 0,
+            "name": "get by id 200",
+            "path": "::get by id 200",
+            "id": "84045a6faf2da816e28ed0bffb91b08c"
+          },
+          {
+            "id": "101845da6bfff9a40752e80ad70d8e91",
+            "passes": 21250,
+            "fails": 0,
+            "name": "get by email 200",
+            "path": "::get by email 200"
+          },
+          {
+            "name": "list customers 200",
+            "path": "::list customers 200",
+            "id": "f3c33d34adc01f52e021206fd66f863a",
+            "passes": 35565,
+            "fails": 0
+          },
+          {
+            "passes": 14266,
+            "fails": 0,
+            "name": "insights 200",
+            "path": "::insights 200",
+            "id": "932c28e83a55827be5f61219dd5425e7"
+          },
+          {
+            "fails": 0,
+            "name": "thresholds 200",
+            "path": "::thresholds 200",
+            "id": "e38e307858f2ae1a1364fa689bd7da51",
+            "passes": 10753
+          }
+        ],
+      "name": ""
+    },
+    "options": {
+      "summaryTrendStats": [
+        "avg",
+        "min",
+        "med",
+        "max",
+        "p(90)",
+        "p(95)",
+        "p(99)"
+      ],
+      "summaryTimeUnit": "",
+      "noColor": false
+    },
+    "state": {
+      "isStdOutTTY": true,
+      "isStdErrTTY": true,
+      "testRunDurationMs": 511731.3124
+    },
+    "metrics": {
+      "http_reqs": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 124471,
+          "rate": 243.23506688741762
+        }
+      },
+      "customer_insights_latency": {
+        "type": "trend",
+        "contains": "default",
+        "values": {
+          "p(95)": 560,
+          "p(99)": 982.3500000000004,
+          "avg": 136.41854759568204,
+          "min": 0,
+          "med": 31,
+          "max": 1807,
+          "p(90)": 430
+        },
+        "thresholds": {
+          "p(95)<8000": {
+            "ok": true
+          }
+        }
+      },
+      "iteration_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 2233.9331619228797,
+          "min": 1000.676,
+          "med": 2213.2325,
+          "max": 6770.8423,
+          "p(90)": 3049.80731,
+          "p(95)": 3421.312514999999,
+          "p(99)": 4245.710225
+        }
+      },
+      "http_req_connecting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0.007440884222027623,
+          "min": 0,
+          "med": 0,
+          "max": 32.755,
+          "p(90)": 0,
+          "p(95)": 0,
+          "p(99)": 0
+        }
+      },
+      "http_req_sending": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0.023653998120044054,
+          "min": 0,
+          "med": 0,
+          "max": 134.7956,
+          "p(90)": 0,
+          "p(95)": 0,
+          "p(99)": 0.5711
+        }
+      },
+      "iterations": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 71082,
+          "rate": 138.9049258420951
+        }
+      },
+      "http_req_duration": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(95)": 586.2927500000001,
+          "p(99)": 1091.1009200000003,
+          "avg": 134.047237552522,
+          "min": 0,
+          "med": 25.7443,
+          "max": 2082.1697,
+          "p(90)": 429.093
+        },
+        "thresholds": {
+          "p(95)<8000": {
+            "ok": true
+          },
+          "p(99)<15000": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_tls_handshaking": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0,
+          "min": 0,
+          "med": 0,
+          "max": 0,
+          "p(90)": 0,
+          "p(95)": 0,
+          "p(99)": 0
+        }
+      },
+      "http_req_receiving": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0.19398138200866094,
+          "min": 0,
+          "med": 0,
+          "max": 176.5058,
+          "p(90)": 0.6379,
+          "p(95)": 0.83985,
+          "p(99)": 1.5078300000000002
+        }
+      },
+      "customers_read": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 78201,
+          "rate": 152.81652325170478
+        }
+      },
+      "customer_list_latency": {
+        "values": {
+          "avg": 148.6293828201884,
+          "min": 0,
+          "med": 29,
+          "max": 1797,
+          "p(90)": 464,
+          "p(95)": 653,
+          "p(99)": 1206
+        },
+        "thresholds": {
+          "p(95)<5000": {
+            "ok": true
+          }
+        },
+        "type": "trend",
+        "contains": "default"
+      },
+      "http_req_blocked": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "avg": 0.013869072314033002,
+          "min": 0,
+          "med": 0,
+          "max": 61.5843,
+          "p(90)": 0,
+          "p(95)": 0,
+          "p(99)": 0.5251200000000011
+        }
+      },
+      "customer_insights_read": {
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 14266,
+          "rate": 27.877911033219785
+        }
+      },
+      "http_req_waiting": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(90)": 429.0051,
+          "p(95)": 585.88715,
+          "p(99)": 1090.9336300000007,
+          "avg": 133.8296021723928,
+          "min": 0,
+          "med": 25.5435,
+          "max": 2082.1697
+        }
+      },
+      "data_sent": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 13432993,
+          "rate": 26250.089987653453
+        }
+      },
+      "data_received": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 109533578,
+          "rate": 214045.0962171765
+        }
+      },
+      "checks": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "fails": 0,
+          "rate": 1,
+          "passes": 124470
+        }
+      },
+      "http_req_failed": {
+        "values": {
+          "rate": 0,
+          "passes": 0,
+          "fails": 124471
+        },
+        "thresholds": {
+          "rate<0.05": {
+            "ok": true
+          }
+        },
+        "type": "rate",
+        "contains": "default"
+      },
+      "vus_max": {
+        "type": "gauge",
+        "contains": "default",
+        "values": {
+          "value": 500,
+          "min": 500,
+          "max": 500
+        }
+      },
+      "customer_get_latency": {
+        "type": "trend",
+        "contains": "default",
+        "values": {
+          "max": 2082,
+          "p(90)": 459,
+          "p(95)": 615.25,
+          "p(99)": 1141.6500000000015,
+          "avg": 145.8293695468618,
+          "min": 0,
+          "med": 31
+        },
+        "thresholds": {
+          "p(95)<3000": {
+            "ok": true
+          }
+        }
+      },
+      "http_req_duration{expected_response:true}": {
+        "type": "trend",
+        "contains": "time",
+        "values": {
+          "p(99)": 1091.1009200000003,
+          "avg": 134.047237552522,
+          "min": 0,
+          "med": 25.7443,
+          "max": 2082.1697,
+          "p(90)": 429.093,
+          "p(95)": 586.2927500000001
+        }
+      },
+      "vus": {
+        "contains": "default",
+        "values": {
+          "value": 4,
+          "min": 2,
+          "max": 500
+        },
+        "type": "gauge"
+      },
+      "success_rate": {
+        "thresholds": {
+          "rate>0.95": {
+            "ok": true
+          }
+        },
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "rate": 1,
+          "passes": 71082,
+          "fails": 0
+        }
+      }
+    },
+    "setup_data": {
+      "startTime": 1765194303747,
+      "customerEmails": [
+        "admian2@demo.com",
+        "stresstest1@demo.com",
+        "stresstest4@demo.com",
+        "admind2@demo.com",
+        "admin2@demo.com",
+        "stresstest3@demo.com",
+        "stresstest5@demo.com",
+        "stresstest2@demo.com"
+      ],
+      "customerIds": [
+        "1402b11d-7939-4f1a-9cc0-ad5d89fa8009",
+        "48fb8597-7286-4a74-b5db-1175911407da",
+        "5aef18e5-c5b4-4d09-9019-fa8e49fafe55",
+        "75839b8d-5ebb-46ab-a8e1-7792543acaee",
+        "8b81ead9-3cff-43b7-af0a-4cd4a41aa998",
+        "a4c94f82-9dc6-421b-a847-99b5724ffd8c",
+        "b0b89850-606b-488a-abbf-aca54fd43c96",
+        "b882d723-cd20-4f1b-8747-b17af48aab7c"
+      ]
+    }
+  }
+}
