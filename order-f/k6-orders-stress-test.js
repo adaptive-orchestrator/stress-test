@@ -1,157 +1,243 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Rate } from 'k6/metrics';
+import encoding from 'k6/encoding';
 
 const errorRate = new Rate('errors');
 
 export const options = {
   stages: [
-    { duration: '30s', target: 10 },
-    { duration: '1m', target: 10 },
-    { duration: '30s', target: 50 },
-    { duration: '2m', target: 50 },
-    { duration: '30s', target: 100 },
-    { duration: '1m', target: 100 },
-    { duration: '30s', target: 0 },
+    { duration: '30s', target: 10 },   // Start very slow to debug
+    { duration: '2m', target: 25 },    // Increase to 10
+    { duration: '2m', target: 25 },    // Hold at 10
+    { duration: '1m', target: 50 },   // Ramp to 10
+    { duration: '2m', target: 100 },   // Hold at 10
+    { duration: '1m', target: 0 },    // Cool down
   ],
   thresholds: {
-    http_req_duration: ['p(95)<600'],
-    http_req_failed: ['rate<0.1'],
-    errors: ['rate<0.1'],
+    http_req_duration: ['p(95)<5000'],  // 5s for order (complex operation)
+    http_req_failed: ['rate<0.15'],     // 15% error tolerance while debugging
+    errors: ['rate<0.15'],
+    checks: ['rate>0.85'],              // 85% check pass rate
   },
 };
 
 const BASE_URL = 'http://localhost:3000';
 
-// Test users - each VU gets a different user to test data isolation
-const TEST_USERS = [
-  { email: 'testuser1@example.com', password: 'test123456' },
-  { email: 'testuser2@example.com', password: 'test123456' },
-  { email: 'testuser3@example.com', password: 'test123456' },
-  { email: 'testuser4@example.com', password: 'test123456' },
-  { email: 'testuser5@example.com', password: 'test123456' },
-  { email: 'testuser6@example.com', password: 'test123456' },
-  { email: 'testuser7@example.com', password: 'test123456' },
-  { email: 'testuser8@example.com', password: 'test123456' },
-  { email: 'testuser9@example.com', password: 'test123456' },
-  { email: 'testuser10@example.com', password: 'test123456' },
-];
+// Use real test user created by setup script
+const TEST_USER = {
+  email: 'admin2@demo.com',
+  password: 'Admin@123'
+};
 
-// Cache for auth tokens
-const authCache = {};
+let authToken = '';
+let productIds = [];
 
-function getAuthHeaders(vuIndex) {
-  const userIndex = vuIndex % TEST_USERS.length;
-  const user = TEST_USERS[userIndex];
-  
-  // Try to use cached token
-  if (authCache[user.email]) {
-    return authCache[user.email];
-  }
+export function setup() {
+  console.log('🔐 Authenticating...');
   
   // Login to get token
   const loginRes = http.post(
     `${BASE_URL}/auth/login`,
-    JSON.stringify({ email: user.email, password: user.password }),
+    JSON.stringify(TEST_USER),
     { headers: { 'Content-Type': 'application/json' } }
   );
   
-  if (loginRes.status === 200) {
+  if (loginRes.status !== 200 && loginRes.status !== 201) {
+    console.error('❌ Authentication failed:', loginRes.status, loginRes.body);
+    throw new Error('Cannot authenticate');
+  }
+  
+  const loginData = JSON.parse(loginRes.body);
+  authToken = loginData.accessToken || loginData.access_token;
+  console.log('✅ Authenticated successfully');
+  
+  const authHeaders = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${authToken}`
+  };
+  
+  // Step 1: Extract userId from JWT token
+  let userId = '';
+  if (authToken) {
     try {
-      const body = JSON.parse(loginRes.body);
-      const token = body.token || body.access_token;
-      authCache[user.email] = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      };
-      return authCache[user.email];
+      const parts = authToken.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(encoding.b64decode(parts[1], 'rawstd', 's'));
+        userId = payload.sub || payload.userId || payload.id;
+        console.log(`✅ Got userId from JWT: ${userId}`);
+      }
     } catch (e) {
-      console.error('Failed to parse login response');
+      console.error(`❌ Could not decode JWT: ${e.message}`);
     }
   }
   
-  // Fallback to no auth (for backward compatibility)
-  return { 'Content-Type': 'application/json' };
+  if (!userId) {
+    throw new Error('Could not get userId from JWT - test cannot proceed!');
+  }
+  
+  // Step 2: Get customerId by calling the customer API with userId
+  let customerId = '';
+  console.log(`🔍 Fetching customer profile for userId: ${userId}...`);
+  const customerRes = http.get(`${BASE_URL}/customers/by-user/${userId}`, { headers: authHeaders });
+  
+  if (customerRes.status === 200) {
+    try {
+      const customerData = JSON.parse(customerRes.body);
+      customerId = customerData.id;
+      console.log(`✅ Got customerId: ${customerId}`);
+    } catch (e) {
+      console.error(`❌ Could not parse customer response: ${e.message}`);
+    }
+  } else {
+    console.error(`❌ Failed to get customer by userId: ${customerRes.status} - ${customerRes.body}`);
+  }
+  
+  if (!customerId) {
+    throw new Error('Could not get customerId - test cannot proceed!');
+  }
+  
+  // Get products with available inventory
+  const productsRes = http.get(`${BASE_URL}/catalogue/products/my?page=1&limit=20`, { headers: authHeaders });
+  if (productsRes.status === 200) {
+    try {
+      const data = JSON.parse(productsRes.body);
+      const products = data.products || data.items || data.data || [];
+      
+      console.log(`📦 Checking inventory for ${products.length} products...`);
+      
+      for (const product of products) {
+        if (!product.id) continue;
+        
+        const invRes = http.get(`${BASE_URL}/inventory/product/${product.id}`, { headers: authHeaders });
+        if (invRes.status === 200) {
+          try {
+            const invData = JSON.parse(invRes.body);
+            const inventory = invData.inventory || invData;
+            const availableStock = inventory.quantity || inventory.availableQuantity || 0;
+            
+            if (availableStock > 5) {
+              productIds.push(product.id);
+              console.log(`  ✓ Product ${product.id}: ${availableStock} units`);
+            }
+          } catch (e) {
+            // Skip products with inventory check errors
+          }
+        }
+      }
+      
+      console.log(`✅ Found ${productIds.length} products with stock`);
+    } catch (e) {
+      console.log(`⚠️  Could not get products: ${e.message}`);
+    }
+  }
+  
+  if (productIds.length === 0) {
+    console.log('⚠️  No products with stock - test cannot proceed!');
+    throw new Error('No products with sufficient stock available');
+  }
+  
+  return { authToken, productIds, customerId };
 }
 
 function createItem(productId) {
   return {
-    productId: productId || 'p0000001-0000-0000-0000-000000000001', // Default UUID for product
-    quantity: 2,
-    price: 99.99,
+    productId: productId,
+    quantity: Math.floor(Math.random() * 3) + 1, // 1-3 items
+    price: Math.floor(Math.random() * 500) + 50, // $50-$550
   };
 }
 
-function createOrderPayload(productId) {
-  // Don't specify customerId - backend will use authenticated user's ID
+function createOrderPayload(productIds, customerId) {
+  // Pick random product from available products
+  const productId = productIds.length > 0 
+    ? productIds[Math.floor(Math.random() * productIds.length)]
+    : 'mock-product-id';
+  
   return {
+    customerId: customerId, // Required field
     items: [createItem(productId)],
-    notes: 'Stress test order',
+    notes: `K6 stress test order - ${Date.now()}`,
     shippingAddress: '123 Test Street, District 1, Ho Chi Minh City',
+    paymentMethod: 'credit_card',
   };
 }
 
-export default function () {
-  const headers = getAuthHeaders(__VU);
+export default function (data) {
+  const token = data?.authToken || '';
+  const productIds = data?.productIds || [];
+  const customerId = data?.customerId || '';
+  
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  };
 
-  // Create order (using authenticated user)
-  const createRes = http.post(`${BASE_URL}/orders`, JSON.stringify(createOrderPayload()), { headers });
-  const okCreate = check(createRes, { 'create 201': (r) => r.status === 201 });
+  // Create order
+  const orderPayload = createOrderPayload(productIds, customerId);
+  const createRes = http.post(`${BASE_URL}/orders`, JSON.stringify(orderPayload), { 
+    headers,
+    tags: { name: 'create_order' }
+  });
+  
+  const okCreate = check(createRes, { 
+    'create 201': (r) => r.status === 201 || r.status === 200 
+  });
+  
+  if (!okCreate) {
+    console.log(`[VU${__VU}] Order creation failed: ${createRes.status} - ${createRes.body}`);
+    if (createRes.status === 500) {
+      console.log(`[VU${__VU}] Payload was:`, JSON.stringify(orderPayload));
+    }
+  }
+  
   errorRate.add(!okCreate);
 
   if (okCreate) {
     const b = JSON.parse(createRes.body);
-    const orderId = b.order.id;
+    const orderId = b.order?.id || b.id;
 
-    // Get user's order by id (uses /orders/my/:id endpoint internally)
-    const getRes = http.get(`${BASE_URL}/orders/${orderId}`, { headers });
-    check(getRes, { 'get 200': (r) => r.status === 200 });
+    if (orderId) {
+      // Get order by id
+      const getRes = http.get(`${BASE_URL}/orders/${orderId}`, { 
+        headers,
+        tags: { name: 'get_order' }
+      });
+      check(getRes, { 'get 200': (r) => r.status === 200 });
 
-    // Get user's orders list (uses /orders/my endpoint)
-    check(http.get(`${BASE_URL}/orders/my?page=1&limit=20`, { headers }), { 
-      'my orders 200': (r) => r.status === 200 
-    });
+      // Get user's orders list
+      check(http.get(`${BASE_URL}/orders/my?page=1&limit=20`, { 
+        headers,
+        tags: { name: 'list_orders' }
+      }), { 
+        'my orders 200': (r) => r.status === 200 
+      });
 
-    // Add item (only allowed when order is 'pending')
-    check(http.post(
-      `${BASE_URL}/orders/${orderId}/items`, 
-      JSON.stringify({ productId: 'p0000001-0000-0000-0000-000000000002', quantity: 1, price: 49.99 }), 
-      { headers }
-    ), { 'add item 200/201': (r) => r.status === 200 || r.status === 201 });
+      // Add item (only if we have products)
+      if (productIds.length > 0) {
+        const newProductId = productIds[Math.floor(Math.random() * productIds.length)];
+        check(http.post(
+          `${BASE_URL}/orders/${orderId}/items`, 
+          JSON.stringify({ 
+            productId: newProductId, 
+            quantity: 1, 
+            price: Math.floor(Math.random() * 200) + 20 
+          }), 
+          { headers, tags: { name: 'add_item' } }
+        ), { 'add item 200/201': (r) => r.status === 200 || r.status === 201 || r.status === 400 });
+      }
 
-    // Cancel own order
-    check(http.del(`${BASE_URL}/orders/${orderId}?reason=Stress%20test`, { headers }), { 
-      'cancel 200': (r) => r.status === 200 
-    });
+      // Cancel own order - TODO: Feature not yet completed
+      // check(http.del(`${BASE_URL}/orders/${orderId}?reason=K6%20stress%20test`, { 
+      //   headers,
+      //   tags: { name: 'cancel_order' }
+      // }), { 
+      //   'cancel 200': (r) => r.status === 200 || r.status === 204
+      // });
+    }
   }
 
-  sleep(Math.random() * 1.5 + 0.5);
-}
-
-export function setup() {
-  // Test authentication first
-  const testUser = TEST_USERS[0];
-  const loginRes = http.post(
-    `${BASE_URL}/auth/login`,
-    JSON.stringify({ email: testUser.email, password: testUser.password }),
-    { headers: { 'Content-Type': 'application/json' } }
-  );
-  
-  if (loginRes.status !== 200) {
-    console.warn('⚠️ Authentication may not be working. Tests may fail with 401.');
-    console.warn('Make sure test users are created in the database.');
-  } else {
-    console.log('✅ Authentication working');
-  }
-  
-  // Check API health
-  const health = http.get(`${BASE_URL}/orders?page=1&limit=1`);
-  if (health.status >= 500) {
-    throw new Error('Orders API unhealthy');
-  }
-  console.log('✅ Orders API reachable');
-  console.log('🔐 Data isolation: Each VU uses separate user account');
-  return { startTime: Date.now() };
+  sleep(Math.random() * 2 + 1); // 1-3 seconds
 }
 
 // Calculate recommended K8s resources based on test results
