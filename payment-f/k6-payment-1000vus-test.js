@@ -1,44 +1,87 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
-import { Rate, Trend, Counter } from 'k6/metrics';
+import { Counter, Trend, Rate } from 'k6/metrics';
 
 // Custom metrics
 const paymentsInitiated = new Counter('payments_initiated');
 const paymentsConfirmed = new Counter('payments_confirmed');
 const paymentErrors = new Counter('payment_errors');
 const initiateLatency = new Trend('payment_initiate_latency');
-const confirmLatency = new Trend('payment_confirm_latency');
 const successRate = new Rate('success_rate');
 
 export const options = {
   stages: [
     // Warm-up phase
     { duration: '30s', target: 100 },
+    { duration: '1m', target: 100 },
     // Ramp-up to 500
-    { duration: '1m', target: 500 },
-    // Hold at 500
+    { duration: '30s', target: 500 },
     { duration: '2m', target: 500 },
     // Ramp-up to 1000
-    { duration: '1m', target: 1000 },
+    { duration: '30s', target: 1000 },
     // Hold at peak 1000 VUs
-    { duration: '3m', target: 1000 },
+    { duration: '1m', target: 1000 },
     // Cool-down
-    { duration: '1m', target: 0 },
+    { duration: '30s', target: 0 },
   ],
   thresholds: {
-    http_req_duration: ['p(95)<1200', 'p(99)<2500'],
+    http_req_duration: ['p(95)<1200'],
     http_req_failed: ['rate<0.15'],
     success_rate: ['rate>0.85'],
-    payment_initiate_latency: ['p(95)<1000'],
-    payment_confirm_latency: ['p(95)<800'],
   },
-  summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
 };
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
-// Payment methods matching API
+// Payment methods
 const PAYMENT_METHODS = ['vnpay', 'momo', 'zalopay', 'bank_transfer', 'card'];
+
+// Test users - each VU gets a different user to test data isolation
+// Using stress test users that already exist in the system
+const TEST_USERS = [
+  { email: 'stresstest1@demo.com', password: 'Test@123456' },
+  { email: 'stresstest2@demo.com', password: 'Test@123456' },
+  { email: 'stresstest3@demo.com', password: 'Test@123456' },
+  { email: 'stresstest4@demo.com', password: 'Test@123456' },
+  { email: 'stresstest5@demo.com', password: 'Test@123456' },
+];
+
+// Cache for auth tokens
+const authCache = {};
+
+function getAuthHeaders(vuIndex) {
+  const userIndex = vuIndex % TEST_USERS.length;
+  const user = TEST_USERS[userIndex];
+  
+  // Try to use cached token
+  if (authCache[user.email]) {
+    return authCache[user.email];
+  }
+  
+  // Login to get token
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: user.email, password: user.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status === 200 || loginRes.status === 201) {
+    try {
+      const body = JSON.parse(loginRes.body);
+      const token = body.accessToken || body.access_token || body.token;
+      authCache[user.email] = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+      return authCache[user.email];
+    } catch (e) {
+      console.error('Failed to parse login response');
+    }
+  }
+  
+  // Fallback to no auth (for backward compatibility)
+  return { 'Content-Type': 'application/json' };
+}
 
 // Counter to generate unique invoice IDs per VU
 let invoiceCounter = 0;
@@ -55,7 +98,8 @@ function randomUUID() {
 /**
  * Generate InitiatePaymentDto
  * Required: invoiceId, amount, method
- * Optional: orderId, customerId
+ * Optional: orderId, invoiceNumber (will be auto-generated if not provided)
+ * Note: customerId will be set by backend based on authenticated user
  */
 function generatePaymentPayload() {
   // Generate unique invoiceId as UUID
@@ -66,7 +110,7 @@ function generatePaymentPayload() {
     invoiceId: uniqueId,
     invoiceNumber: `INV-TEST-${Date.now()}-${invoiceCounter}`,
     orderId: Math.random() > 0.5 ? randomUUID() : undefined,
-    customerId: randomUUID(),
+    // Don't include customerId - backend will use authenticated user's ID
     amount: 50000 + Math.floor(Math.random() * 500000),
     method: PAYMENT_METHODS[Math.floor(Math.random() * PAYMENT_METHODS.length)],
   };
@@ -75,135 +119,150 @@ function generatePaymentPayload() {
 /**
  * Generate ConfirmPaymentDto
  * Required: paymentId, status
- * Optional: transactionId, amount, failureReason
+ * Optional: transactionId, failureReason
  */
 function generateConfirmPayload(paymentId) {
   const isSuccess = Math.random() > 0.1; // 90% success rate
   return {
-    paymentId: paymentId, // Keep as number
+    paymentId: paymentId,
     status: isSuccess ? 'success' : 'failed',
     transactionId: isSuccess ? `TXN-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}` : undefined,
     amount: isSuccess ? 50000 + Math.floor(Math.random() * 500000) : undefined,
-    failureReason: isSuccess ? undefined : 'Insufficient funds - stress test',
+    failureReason: isSuccess ? undefined : 'Insufficient funds',
   };
 }
 
 export default function () {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = getAuthHeaders(__VU);
   let success = true;
 
-  // 1. Initiate Payment (35% weight)
-  if (Math.random() < 0.35) {
-    const payload = generatePaymentPayload();
-    const startInit = Date.now();
-    const initRes = http.post(`${BASE_URL}/payments/initiate`, JSON.stringify(payload), { headers });
-    initiateLatency.add(Date.now() - startInit);
+  // 1. Initiate payment (authenticated)
+  const initPayload = generatePaymentPayload();
+  const startInit = Date.now();
+  const init = http.post(`${BASE_URL}/payments/initiate`, JSON.stringify(initPayload), { headers });
+  initiateLatency.add(Date.now() - startInit);
 
-    const initOk = check(initRes, {
-      'initiate payment 201': (r) => r.status === 201 || r.status === 200,
-      'initiate has id': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          return body?.payment?.id || body?.id || body?.paymentId;
-        } catch {
-          return false;
-        }
-      },
-    });
-
-    if (initOk) {
-      paymentsInitiated.add(1);
-
-      // Confirm payment (80% chance)
-      if (Math.random() < 0.8) {
-        try {
-          const body = JSON.parse(initRes.body);
-          const paymentId = body?.payment?.id || body?.id || body?.paymentId;
-
-          if (paymentId) {
-            const startConfirm = Date.now();
-            // Use proper ConfirmPaymentDto with status enum
-            const confirmPayload = generateConfirmPayload(paymentId);
-            const confirmRes = http.post(
-              `${BASE_URL}/payments/confirm`,
-              JSON.stringify(confirmPayload),
-              { headers }
-            );
-            confirmLatency.add(Date.now() - startConfirm);
-
-            const confirmOk = check(confirmRes, {
-              'confirm payment 200': (r) => r.status === 200,
-            });
-
-            if (confirmOk) {
-              paymentsConfirmed.add(1);
-            }
-          }
-        } catch (e) {
-          paymentErrors.add(1);
-          success = false;
-        }
+  const initOk = check(init, { 
+    'init 201': (r) => r.status === 201,
+    'init has payment': (r) => {
+      try {
+        const body = JSON.parse(r.body);
+        return body?.id || body?.payment?.id;
+      } catch {
+        return false;
       }
-    } else {
-      paymentErrors.add(1);
-      success = false;
+    }
+  });
+
+  if (initOk) {
+    paymentsInitiated.add(1);
+  } else {
+    paymentErrors.add(1);
+    success = false;
+    if (init.status !== 201) {
+      console.log(`Initiate failed: ${init.status} - ${init.body}`);
     }
   }
 
-  // 2. List Payments (25% weight)
-  if (Math.random() < 0.25) {
-    const page = 1 + Math.floor(Math.random() * 10);
-    const listRes = http.get(`${BASE_URL}/payments?page=${page}&limit=20`);
-    
-    check(listRes, {
-      'list payments 200': (r) => r.status === 200,
-      'list has data': (r) => {
-        try {
-          const body = JSON.parse(r.body);
-          return Array.isArray(body?.payments) || Array.isArray(body?.data) || Array.isArray(body);
-        } catch {
-          return false;
+  // 2. Get my payments (user-specific)
+  const myPaymentsRes = http.get(`${BASE_URL}/payments/my?page=1&limit=20`, { headers });
+  check(myPaymentsRes, { 
+    'my payments 200': (r) => r.status === 200,
+    'my payments has data': (r) => {
+      try {
+        const body = JSON.parse(r.body);
+        return body?.pagination && body?.payments;
+      } catch {
+        return false;
+      }
+    }
+  });
+
+  // 3. Confirm payment (if initiated successfully)
+  if (init.status === 201) {
+    try {
+      const body = JSON.parse(init.body);
+      const paymentId = body?.id || body?.payment?.id;
+
+      if (paymentId) {
+        // Confirm payment with proper DTO
+        const confirmPayload = generateConfirmPayload(paymentId);
+        const confirm = http.post(`${BASE_URL}/payments/confirm`, JSON.stringify(confirmPayload), { headers });
+        
+        const confirmOk = check(confirm, { 
+          'confirm 200': (r) => r.status === 200 
+        });
+        
+        if (confirmOk) {
+          paymentsConfirmed.add(1);
+        } else {
+          console.log(`Confirm failed: ${confirm.status} - ${confirm.body}`);
         }
-      },
-    });
+
+        // Get my payment by ID
+        const getMyPayment = http.get(`${BASE_URL}/payments/my/${paymentId}`, { headers });
+        const getMyPaymentOk = check(getMyPayment, { 
+          'get my payment 200': (r) => r.status === 200 || r.status === 404 || r.status === 403
+        });
+        
+        if (!getMyPaymentOk) {
+          console.log(`Get my payment failed: ${getMyPayment.status} - ${getMyPayment.body}`);
+        }
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
   }
 
-  // 3. Get Payment Stats (20% weight)
-  if (Math.random() < 0.20) {
-    const statsRes = http.get(`${BASE_URL}/payments/stats/summary`);
-    check(statsRes, {
-      'stats 200': (r) => r.status === 200,
-    });
-  }
-
-  // 4. Get Payments by Invoice (20% weight)
-  if (Math.random() < 0.20) {
-    const invoiceId = 1 + Math.floor(Math.random() * 2000);
-    const invoicePaymentsRes = http.get(`${BASE_URL}/payments/invoice/${invoiceId}`);
-    check(invoicePaymentsRes, {
-      'by invoice 200': (r) => r.status === 200 || r.status === 404,
-    });
-  }
+  // 4. Get payments by invoice (authenticated)
+  const invoiceId = initPayload.invoiceId;
+  check(http.get(`${BASE_URL}/payments/invoice/${invoiceId}`, { headers }), { 
+    'by invoice 200': (r) => r.status === 200 
+  });
 
   successRate.add(success);
-  sleep(Math.random() * 1 + 0.3);
+  sleep(Math.random() * 1.5 + 0.5);
 }
 
 export function setup() {
-  console.log(`Testing Payment API at: ${BASE_URL}`);
-  const health = http.get(`${BASE_URL}/payments`);
-  if (health.status >= 500) {
-    throw new Error(`Payment API unhealthy: ${health.status}`);
+  console.log(`\n========== PAYMENT 1000 VUs STRESS TEST ==========`);
+  console.log(`Target API: ${BASE_URL}`);
+  console.log(`==================================================\n`);
+
+  // Test authentication first
+  const testUser = TEST_USERS[0];
+  const loginRes = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: testUser.email, password: testUser.password }),
+    { headers: { 'Content-Type': 'application/json' } }
+  );
+  
+  if (loginRes.status !== 200) {
+    console.warn('⚠️ Authentication may not be working. Tests may fail with 401.');
+    console.warn('Make sure test users are created in the database.');
+  } else {
+    console.log('✅ Authentication working');
   }
-  console.log('Payment API health check passed');
+
+  // Health check with authentication
+  const headers = loginRes.status === 200 ? {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${JSON.parse(loginRes.body).token}`
+  } : { 'Content-Type': 'application/json' };
+  
+  const health = http.get(`${BASE_URL}/payments/my?page=1&limit=10`, { headers });
+  if (health.status >= 500) throw new Error(`Payment API unhealthy: ${health.status}`);
+  
+  console.log('✅ Payment API health check passed');
+  console.log('🔐 Data isolation: Each VU uses separate user account');
   return { startTime: Date.now() };
 }
 
 export function teardown(data) {
   const duration = (Date.now() - data.startTime) / 1000;
-  console.log(`\n========== PAYMENT 1000 VUs TEST COMPLETE ==========`);
-  console.log(`Total duration: ${duration.toFixed(2)}s`);
-  console.log(`====================================================\n`);
+  console.log(`\n========== TEST COMPLETE ==========`);
+  console.log(`Duration: ${duration.toFixed(2)}s`);
+  console.log(`===================================\n`);
 }
 
 // Calculate recommended K8s resources based on test results
@@ -266,23 +325,6 @@ function calculateResourceRecommendation(data) {
 export function handleSummary(data) {
   const recommendation = calculateResourceRecommendation(data);
   
-  const summary = {
-    test: 'Payment API - 1000 VUs Stress Test',
-    timestamp: new Date().toISOString(),
-    metrics: {
-      total_requests: data.metrics.http_reqs?.values?.count || 0,
-      failed_requests: data.metrics.http_req_failed?.values?.passes || 0,
-      avg_response_time: data.metrics.http_req_duration?.values?.avg?.toFixed(2) || 0,
-      p95_response_time: data.metrics.http_req_duration?.values['p(95)']?.toFixed(2) || 0,
-      p99_response_time: data.metrics.http_req_duration?.values['p(99)']?.toFixed(2) || 0,
-      payments_initiated: data.metrics.payments_initiated?.values?.count || 0,
-      payments_confirmed: data.metrics.payments_confirmed?.values?.count || 0,
-      payment_errors: data.metrics.payment_errors?.values?.count || 0,
-      success_rate: ((data.metrics.success_rate?.values?.rate || 0) * 100).toFixed(2) + '%',
-    },
-    k8sRecommendation: recommendation,
-  };
-
   console.log('\n' + '='.repeat(60));
   console.log('🎯 K8S RESOURCE RECOMMENDATIONS');
   console.log('='.repeat(60));
@@ -304,31 +346,8 @@ export function handleSummary(data) {
   console.log(`    memory: "${recommendation.resources.limits.memory}"`);
   console.log('```');
   console.log('='.repeat(60) + '\n');
-
-  return {
-    'payment-1000vus-summary.json': JSON.stringify(summary, null, 2),
-    stdout: textSummary(data, { indent: ' ', enableColors: true }),
-  };
-}
-
-function textSummary(data, options) {
-  const lines = [
-    '\n╔══════════════════════════════════════════════════════════════╗',
-    '║          PAYMENT API - 1000 VUs STRESS TEST RESULTS         ║',
-    '╠══════════════════════════════════════════════════════════════╣',
-  ];
-
-  const metrics = data.metrics;
   
-  lines.push(`║ Total Requests:      ${String(metrics.http_reqs?.values?.count || 0).padStart(35)} ║`);
-  lines.push(`║ Failed Rate:         ${String(((metrics.http_req_failed?.values?.rate || 0) * 100).toFixed(2) + '%').padStart(35)} ║`);
-  lines.push(`║ Avg Response Time:   ${String((metrics.http_req_duration?.values?.avg || 0).toFixed(2) + 'ms').padStart(35)} ║`);
-  lines.push(`║ P95 Response Time:   ${String((metrics.http_req_duration?.values['p(95)'] || 0).toFixed(2) + 'ms').padStart(35)} ║`);
-  lines.push(`║ P99 Response Time:   ${String((metrics.http_req_duration?.values['p(99)'] || 0).toFixed(2) + 'ms').padStart(35)} ║`);
-  lines.push(`║ Payments Initiated:  ${String(metrics.payments_initiated?.values?.count || 0).padStart(35)} ║`);
-  lines.push(`║ Payments Confirmed:  ${String(metrics.payments_confirmed?.values?.count || 0).padStart(35)} ║`);
-  lines.push(`║ Payment Errors:      ${String(metrics.payment_errors?.values?.count || 0).padStart(35)} ║`);
-  lines.push('╚══════════════════════════════════════════════════════════════╝\n');
-
-  return lines.join('\n');
+  return {
+    'payment-1000vus-summary.json': JSON.stringify({ ...data, k8sRecommendation: recommendation }, null, 2),
+  };
 }

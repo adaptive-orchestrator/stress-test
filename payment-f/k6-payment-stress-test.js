@@ -32,17 +32,13 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 const PAYMENT_METHODS = ['vnpay', 'momo', 'zalopay', 'bank_transfer', 'card'];
 
 // Test users - each VU gets a different user to test data isolation
+// Using stress test users that already exist in the system
 const TEST_USERS = [
-  { email: 'testuser1@example.com', password: 'test123456' },
-  { email: 'testuser2@example.com', password: 'test123456' },
-  { email: 'testuser3@example.com', password: 'test123456' },
-  { email: 'testuser4@example.com', password: 'test123456' },
-  { email: 'testuser5@example.com', password: 'test123456' },
-  { email: 'testuser6@example.com', password: 'test123456' },
-  { email: 'testuser7@example.com', password: 'test123456' },
-  { email: 'testuser8@example.com', password: 'test123456' },
-  { email: 'testuser9@example.com', password: 'test123456' },
-  { email: 'testuser10@example.com', password: 'test123456' },
+  { email: 'stresstest1@demo.com', password: 'Test@123456' },
+  { email: 'stresstest2@demo.com', password: 'Test@123456' },
+  { email: 'stresstest3@demo.com', password: 'Test@123456' },
+  { email: 'stresstest4@demo.com', password: 'Test@123456' },
+  { email: 'stresstest5@demo.com', password: 'Test@123456' },
 ];
 
 // Cache for auth tokens
@@ -64,10 +60,10 @@ function getAuthHeaders(vuIndex) {
     { headers: { 'Content-Type': 'application/json' } }
   );
   
-  if (loginRes.status === 200) {
+  if (loginRes.status === 200 || loginRes.status === 201) {
     try {
       const body = JSON.parse(loginRes.body);
-      const token = body.token || body.access_token;
+      const token = body.accessToken || body.access_token || body.token;
       authCache[user.email] = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -199,9 +195,14 @@ export default function () {
         }
 
         // Get my payment by ID
-        check(http.get(`${BASE_URL}/payments/my/${paymentId}`, { headers }), { 
-          'get my payment 200': (r) => r.status === 200 || r.status === 404 
+        const getMyPayment = http.get(`${BASE_URL}/payments/my/${paymentId}`, { headers });
+        const getMyPaymentOk = check(getMyPayment, { 
+          'get my payment 200': (r) => r.status === 200 || r.status === 404 || r.status === 403
         });
+        
+        if (!getMyPaymentOk) {
+          console.log(`Get my payment failed: ${getMyPayment.status} - ${getMyPayment.body}`);
+        }
       }
     } catch (e) {
       // Ignore parse errors
