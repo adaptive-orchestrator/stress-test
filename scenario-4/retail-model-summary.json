@@ -1,0 +1,45 @@
+{
+  "testCase": "Retail Model (Read-Heavy)",
+  "businessModel": "retail",
+  "workloadRatio": "90% Read / 10% Write",
+  "timestamp": "2025-12-26T10:04:10.055Z",
+  "duration": 487042.9256,
+  "vus": {
+    "max": 1000
+  },
+  "throughput": {
+    "totalRequests": 51526,
+    "readRequests": 43452,
+    "writeRequests": 8074,
+    "rps": 105.79354979137388
+  },
+  "latency": {
+    "overall": {
+      "avg": 6097.240521797725,
+      "p50": 8191.4853,
+      "p90": 11771.530900000002,
+      "p95": 12338.683389999998,
+      "p99": 13154.985686
+    },
+    "read": {
+      "avg": 6584.578661511553,
+      "p95": 12450
+    },
+    "write": {
+      "avg": 4251.372058459252,
+      "p95": 9387
+    },
+    "catalogue": {
+      "avg": 8168.142988084326,
+      "p95": 12581
+    }
+  },
+  "successRate": {
+    "overall": 0.751581725730699,
+    "read": 0.8159578385344748,
+    "write": 0.4051275699777062
+  },
+  "errorRate": 0.2434431997565568,
+  "ordersCompleted": 3271,
+  "productsViewed": 16033
+}

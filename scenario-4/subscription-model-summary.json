@@ -1,0 +1,56 @@
+{
+  "testCase": "Subscription Model (Complex Logic)",
+  "businessModel": "subscription",
+  "workloadCharacteristics": "Complex business logic, transactions between billing-svc and subscription-svc",
+  "timestamp": "2025-12-26T10:15:31.361Z",
+  "duration": 483942.887,
+  "vus": {
+    "max": 1000
+  },
+  "throughput": {
+    "totalRequests": 200013,
+    "subscriptionOps": 113553,
+    "billingOps": 75739,
+    "rps": 413.2987701087959
+  },
+  "latency": {
+    "overall": {
+      "avg": 599.6777060579527,
+      "p50": 260.2516,
+      "p90": 1798.8857400000002,
+      "p95": 2254.084839999998,
+      "p99": 2956.9745520000006
+    },
+    "subscription": {
+      "avg": 217.1793259535195,
+      "p95": 428
+    },
+    "billing": {
+      "avg": 1218.348908752426,
+      "p95": 2662
+    },
+    "complexOperations": {
+      "avg": 205.66705437627218,
+      "p95": 419
+    }
+  },
+  "successRate": {
+    "overall": 0.43224690395124316,
+    "subscription": 0,
+    "billing": 0.9999339838128309
+  },
+  "errorRate": 0.5648949135679642,
+  "operations": {
+    "subscriptionsCreated": 0,
+    "subscriptionsCancelled": 0,
+    "subscriptionsRenewed": 0,
+    "planChanges": 0,
+    "invoicesCreated": 0,
+    "paymentsInitiated": 0
+  },
+  "resourceUsageExpected": {
+    "cpu": "~78% (Higher due to complex calculations)",
+    "memory": "~40%",
+    "notes": "Subscription model requires more CPU for period calculations, proration, and billing logic"
+  }
+}
