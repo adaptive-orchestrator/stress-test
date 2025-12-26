@@ -2,6 +2,9 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 
 export const options = {
+  // Disable built-in web dashboard to avoid port conflicts
+  noVUConnectionReuse: false,
+  
   stages: [
     { duration: '2m', target: 5 },    // Warm up slowly to 5 users
     { duration: '3m', target: 5 },    // Stay at 5 (baseline)
@@ -26,11 +29,31 @@ export const options = {
   batch: 10,  // Limit parallel requests per VU
 };
 
-const BASE_URL = 'http://localhost:3000';
-const headers = { 'Content-Type': 'application/json' };
+const BASE_URL = 'http://aeedea6da86824660b5724a500186fd3-2135841272.ap-southeast-1.elb.amazonaws.com';
 
-// Authentication
-let authToken = '';
+// Test users for authentication - each user should only see their own inventory
+const TEST_USERS = [
+  { email: 'stresstest1@demo.com', password: 'Test@123456', name: 'Stress Test User 1', role: 'admin' },
+  { email: 'stresstest2@demo.com', password: 'Test@123456', name: 'Stress Test User 2', role: 'admin' },
+  { email: 'stresstest3@demo.com', password: 'Test@123456', name: 'Stress Test User 3', role: 'admin' },
+  { email: 'stresstest4@demo.com', password: 'Test@123456', name: 'Stress Test User 4', role: 'user' },
+  { email: 'stresstest5@demo.com', password: 'Test@123456', name: 'Stress Test User 5', role: 'user' },
+];
+
+// Auth token cache
+let authTokens = {};
+
+// Get auth headers for a VU
+function getAuthHeaders(vuIndex) {
+  const userIndex = vuIndex % TEST_USERS.length;
+  const user = TEST_USERS[userIndex];
+  const token = authTokens[user.email];
+  
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : '',
+  };
+}
 
 // Generate a random UUID for testing
 function randomUUID() {
@@ -57,28 +80,72 @@ function buildProduct() {
 }
 
 export function setup() {
-  console.log('🔐 Authenticating...');
-  const loginPayload = JSON.stringify({
-    email: 'admin2@demo.com',
-    password: 'Admin@123'
-  });
+  console.log('🚀 Starting Inventory API Stress Test with User Isolation...');
+  console.log(`📍 Base URL: ${BASE_URL}`);
+  console.log(`👥 Test Users: ${TEST_USERS.map(u => u.email).join(', ')}`);
   
-  const loginRes = http.post(`${BASE_URL}/auth/login`, loginPayload, { headers });
-  if (loginRes.status !== 200 && loginRes.status !== 201) {
-    console.error('❌ Authentication failed');
-    throw new Error('Cannot authenticate');
+  const tokens = {};
+  
+  // Register and login all test users
+  for (const user of TEST_USERS) {
+    // Try to login first
+    let loginRes = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
+      email: user.email,
+      password: user.password,
+    }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    
+    // If login fails (401/404), try to signup
+    if (loginRes.status !== 200 && loginRes.status !== 201) {
+      console.log(`⚠️ Login failed for ${user.email} (${loginRes.status}), attempting signup...`);
+      
+      const signupRes = http.post(`${BASE_URL}/auth/signup`, JSON.stringify({
+        email: user.email,
+        password: user.password,
+        name: user.name,
+        role: user.role,
+      }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (signupRes.status === 201 || signupRes.status === 200) {
+        console.log(`✅ Signed up: ${user.email}`);
+        // Try login again after signup
+        loginRes = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
+          email: user.email,
+          password: user.password,
+        }), {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        console.log(`❌ Signup failed for ${user.email}: ${signupRes.status} - ${signupRes.body}`);
+      }
+    }
+    
+    if (loginRes.status === 200 || loginRes.status === 201) {
+      try {
+        const body = JSON.parse(loginRes.body);
+        const token = body.access_token || body.token || body.accessToken;
+        tokens[user.email] = token;
+        console.log(`✅ Logged in: ${user.email}`);
+      } catch (e) {
+        console.log(`❌ Failed to parse login response for ${user.email}: ${e.message}`);
+      }
+    } else {
+      console.log(`❌ Final login failed for ${user.email}: ${loginRes.status}`);
+    }
   }
   
-  const loginData = JSON.parse(loginRes.body);
-  authToken = loginData.accessToken || loginData.access_token;
-  console.log('✅ Authenticated successfully');
+  console.log(`✅ Setup completed. ${Object.keys(tokens).length}/${TEST_USERS.length} users authenticated.`);
   
+  // Fetch existing inventory from first authenticated user
+  const firstToken = Object.values(tokens)[0];
   const authHeaders = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${authToken}`
+    'Authorization': `Bearer ${firstToken}`
   };
   
-  // Fetch existing inventory
   const res = http.get(`${BASE_URL}/inventory/my?page=1&limit=50`, { headers: authHeaders });
   let productIds = [];
   
@@ -93,26 +160,38 @@ export function setup() {
     }
   }
   
-  return { productIds, authToken };
+  // Check if API is reachable
+  const healthCheck = http.get(`${BASE_URL}/inventory/low-stock?threshold=5`, { headers: authHeaders });
+  if (healthCheck.status !== 200) {
+    console.log(`⚠️ API health check failed: ${healthCheck.status}. Some tests might fail.`);
+  } else {
+    console.log('✅ API health check passed');
+  }
+  
+  return { productIds, tokens };
 }
 
 export default function (data) {
+  // Get tokens from setup data
+  authTokens = data.tokens || {};
+  
   const ids = data?.productIds || [];
-  const token = data?.authToken || '';
   const pid = ids.length ? ids[Math.floor(Math.random()*ids.length)] : null;
 
-  const authHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  };
+  // Get authenticated headers for current VU
+  const authHeaders = getAuthHeaders(__VU);
+  
+  // Skip if not authenticated
+  if (!authHeaders.Authorization || authHeaders.Authorization === 'Bearer ') {
+    console.log(`⚠️ VU ${__VU}: No auth token, skipping...`);
+    sleep(1);
+    return;
+  }
 
   // Get my inventory (with pagination) - use name tag to avoid high cardinality
   const listRes = http.get(`${BASE_URL}/inventory/my?page=1&limit=20`, { headers: authHeaders, tags: { name: 'list_inventory' } });
-  if (!check(listRes, { 'list 2xx/4xx': (r) => [200,201,400,404].includes(r.status) })) {
+  if (!check(listRes, { 'list 200': (r) => r.status === 200 })) {
     if (__ITER < 3) console.log(`List failed: ${listRes.status} - ${listRes.body.substring(0, 200)}`);
-  }
-  if (![200,201,400,404].includes(listRes.status)) {
-    console.log(`[LIST] Unexpected status: ${listRes.status} - ${listRes.body.substring(0, 200)}`);
   }
 
   // Skip product-specific operations if no product IDs
@@ -122,19 +201,11 @@ export default function (data) {
   }
 
   // Get my inventory by product - use name tag to group by operation
-  const getRes = http.get(`${BASE_URL}/inventory/my/product/${pid}`, { headers: authHeaders, tags: { name: 'get_by_product' } });
-  check(getRes, { 'get 2xx/4xx': (r) => [200,201,400,404].includes(r.status) });
-  if (![200,201,400,404].includes(getRes.status)) {
-    console.log(`[GET] Unexpected status: ${getRes.status} - ${getRes.body.substring(0, 200)}`);
-  }
+  check(http.get(`${BASE_URL}/inventory/my/product/${pid}`, { headers: authHeaders, tags: { name: 'get_by_product' } }), { 'get 200/404': (r) => r.status === 200 || r.status === 404 });
 
   // Adjust stock (AdjustStockDto expects quantity and optional reason)
   const adjust = { quantity: (Math.random() < 0.5 ? -1 : 1) * (1 + Math.floor(Math.random()*5)), reason: 'adjustment' };
-  const adjustRes = http.post(`${BASE_URL}/inventory/product/${pid}/adjust`, JSON.stringify(adjust), { headers: authHeaders, tags: { name: 'adjust_stock' } });
-  check(adjustRes, { 'adjust 2xx/4xx': (r) => [200,201,400,404].includes(r.status) });
-  if (![200,201,400,404].includes(adjustRes.status)) {
-    console.log(`[ADJUST] Unexpected status: ${adjustRes.status} - ${adjustRes.body.substring(0, 200)}`);
-  }
+  check(http.post(`${BASE_URL}/inventory/product/${pid}/adjust`, JSON.stringify(adjust), { headers: authHeaders, tags: { name: 'adjust_stock' } }), { 'adjust 200/400': (r) => r.status === 200 || r.status === 400 });
 
   // Reserve (ReserveStockDto requires UUID orderId and customerId)
   const reserve = {
@@ -143,45 +214,26 @@ export default function (data) {
     orderId: randomUUID(),
     customerId: randomUUID(),
   };
-  const reserveRes = http.post(`${BASE_URL}/inventory/reserve`, JSON.stringify(reserve), { headers: authHeaders, tags: { name: 'reserve_stock' } });
-  check(reserveRes, { 'reserve 2xx/4xx': (r) => [200,201,400,404].includes(r.status) });
-  if (![200,201,400,404].includes(reserveRes.status)) {
-    console.log(`[RESERVE] Unexpected status: ${reserveRes.status} - ${reserveRes.body.substring(0, 200)}`);
-  }
-  if (reserveRes.status === 201) {
+  const res = http.post(`${BASE_URL}/inventory/reserve`, JSON.stringify(reserve), { headers: authHeaders, tags: { name: 'reserve_stock' } });
+  check(res, { 'reserve 201/400': (r) => r.status === 201 || r.status === 400 });
+  if (res.status === 201) {
     try {
-      const parsed = JSON.parse(reserveRes.body);
+      const parsed = JSON.parse(res.body);
       const reservationId = parsed.reservationId || parsed.reservation?.id || parsed.id;
       if (reservationId) {
-        const releaseRes = http.post(`${BASE_URL}/inventory/release/${reservationId}`, null, { headers: authHeaders, tags: { name: 'release_stock' } });
-        check(releaseRes, { 'release 200': (r) => r.status === 200 });
-        if (releaseRes.status !== 200) {
-          console.log(`[RELEASE] Unexpected status: ${releaseRes.status} - ${releaseRes.body.substring(0, 200)}`);
-        }
+        check(http.post(`${BASE_URL}/inventory/release/${reservationId}`, null, { headers: authHeaders, tags: { name: 'release_stock' } }), { 'release 200': (r) => r.status === 200 });
       }
     } catch {}
   }
 
   // Availability
-  const availRes = http.get(`${BASE_URL}/inventory/check-availability/${pid}?quantity=2`, { headers: authHeaders, tags: { name: 'check_availability' } });
-  check(availRes, { 'availability 2xx/4xx': (r) => [200,201,400,404].includes(r.status) });
-  if (![200,201,400,404].includes(availRes.status)) {
-    console.log(`[AVAILABILITY] Unexpected status: ${availRes.status} - ${availRes.body.substring(0, 200)}`);
-  }
+  check(http.get(`${BASE_URL}/inventory/check-availability/${pid}?quantity=2`, { headers: authHeaders, tags: { name: 'check_availability' } }), { 'availability 200': (r) => r.status === 200 });
 
   // History
-  const historyRes = http.get(`${BASE_URL}/inventory/product/${pid}/history`, { headers: authHeaders, tags: { name: 'get_history' } });
-  check(historyRes, { 'history 2xx/4xx': (r) => [200,201,400,404].includes(r.status) });
-  if (![200,201,400,404].includes(historyRes.status)) {
-    console.log(`[HISTORY] Unexpected status: ${historyRes.status} - ${historyRes.body.substring(0, 200)}`);
-  }
+  check(http.get(`${BASE_URL}/inventory/product/${pid}/history`, { headers: authHeaders, tags: { name: 'get_history' } }), { 'history 200': (r) => r.status === 200 || r.status === 404 });
 
   // Low stock
-  const lowRes = http.get(`${BASE_URL}/inventory/low-stock?threshold=3`, { headers: authHeaders, tags: { name: 'get_low_stock' } });
-  check(lowRes, { 'low 2xx/4xx': (r) => [200,201,400,404].includes(r.status) });
-  if (![200,201,400,404].includes(lowRes.status)) {
-    console.log(`[LOW] Unexpected status: ${lowRes.status} - ${lowRes.body.substring(0, 200)}`);
-  }
+  check(http.get(`${BASE_URL}/inventory/low-stock?threshold=3`, { headers: authHeaders, tags: { name: 'get_low_stock' } }), { 'low 200': (r) => r.status === 200 });
 
   // Add realistic think time to reduce pressure on database connections
   sleep(2 + Math.random() * 3); // 2-5 seconds between iterations
