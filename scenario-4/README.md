@@ -24,13 +24,18 @@ Kịch bản này nhằm kiểm chứng **Mục tiêu 5**: Xác định giới h
 
 ```
 stress-test/scenario-4/
-├── README.md                           # File này
-├── k6-setup-test-data.js              # Script chuẩn bị dữ liệu test
-├── k6-stress-test-retail-model.js     # Test Case A - Retail Model
-├── k6-stress-test-subscription-model.js # Test Case B - Subscription Model
-├── retail-model-summary.json          # Kết quả Test Case A (sau khi chạy)
-└── subscription-model-summary.json    # Kết quả Test Case B (sau khi chạy)
+├── README.md                              # File này
+├── k6-setup-retail-test-data.js           # Script setup data CHỈ cho Retail Model
+├── k6-setup-subscription-test-data.js     # Script setup data CHỈ cho Subscription Model
+├── k6-stress-test-retail-model.js         # Test Case A - Retail Model
+├── k6-stress-test-subscription-model.js   # Test Case B - Subscription Model
+├── k6-setup-test-data.js                  # [DEPRECATED] Không sử dụng
+├── retail-model-summary.json              # Kết quả Test Case A (sau khi chạy)
+└── subscription-model-summary.json        # Kết quả Test Case B (sau khi chạy)
 ```
+
+**⚠️ LƯU Ý QUAN TRỌNG**: Hệ thống KHÔNG chạy đồng thời cả Retail và Subscription Model. 
+Chọn MỘT trong hai model và sử dụng setup script tương ứng.
 
 ## Yêu cầu hệ thống
 
@@ -40,21 +45,26 @@ stress-test/scenario-4/
 
 ## Hướng dẫn chạy test
 
-### Bước 1: Chuẩn bị dữ liệu test
+### ⚠️ Chọn MỘT model để test (không chạy song song)
+
+---
+
+### Test Case A: Retail Model
+
+#### Bước 1: Chuẩn bị dữ liệu test
 
 ```bash
 cd stress-test/scenario-4
-k6 run k6-setup-test-data.js
+k6 run k6-setup-retail-test-data.js
 ```
 
 Script này sẽ:
 - Tạo 10 Retail Test Users (stresstest1-5@demo.com, retailtest1-5@demo.com)
-- Tạo 10 Subscription Test Users (subtest1-10@demo.com)
-- Tạo 10 Sample Products trong catalogue
-- Tạo 5 Subscription Plans
+- Tạo Customer Profiles cho mỗi user (QUAN TRỌNG: cần để tạo orders)
+- Tạo 15 Sample Products trong catalogue
 - Tạo Inventory cho các products
 
-### Bước 2: Chạy Test Case A - Retail Model
+#### Bước 2: Chạy Retail Model Stress Test
 
 ```bash
 # Chạy với BASE_URL mặc định
@@ -67,7 +77,24 @@ k6 run -e BASE_URL=http://your-api-url k6-stress-test-retail-model.js
 k6 run --out json=retail-results.json k6-stress-test-retail-model.js
 ```
 
-### Bước 3: Chạy Test Case B - Subscription Model
+---
+
+### Test Case B: Subscription Model
+
+#### Bước 1: Chuẩn bị dữ liệu test
+
+```bash
+cd stress-test/scenario-4
+k6 run k6-setup-subscription-test-data.js
+```
+
+Script này sẽ:
+- Tạo 10 Subscription Test Users (subtest1-10@demo.com)
+- Tạo Customer Profiles cho mỗi user (QUAN TRỌNG: cần để tạo subscriptions)
+- Tạo 8 Features
+- Tạo 5 Subscription Plans
+
+#### Bước 2: Chạy Subscription Model Stress Test
 
 ```bash
 # Chạy với BASE_URL mặc định

@@ -2,44 +2,44 @@
   "testCase": "Subscription Model (Complex Logic)",
   "businessModel": "subscription",
   "workloadCharacteristics": "Complex business logic, transactions between billing-svc and subscription-svc",
-  "timestamp": "2025-12-26T10:15:31.361Z",
-  "duration": 483942.887,
+  "timestamp": "2025-12-27T03:56:32.957Z",
+  "duration": 97143.5831,
   "vus": {
-    "max": 1000
+    "max": 100
   },
   "throughput": {
-    "totalRequests": 200013,
-    "subscriptionOps": 113553,
-    "billingOps": 75739,
-    "rps": 413.2987701087959
+    "totalRequests": 10680,
+    "subscriptionOps": 3431,
+    "billingOps": 4968,
+    "rps": 109.94035487661561
   },
   "latency": {
     "overall": {
-      "avg": 599.6777060579527,
-      "p50": 260.2516,
-      "p90": 1798.8857400000002,
-      "p95": 2254.084839999998,
-      "p99": 2956.9745520000006
+      "avg": 186.1372927395486,
+      "p50": 79.0067,
+      "p90": 424.45723999999973,
+      "p95": 780.4197199999991,
+      "p99": 1382.9538199999984
     },
     "subscription": {
-      "avg": 217.1793259535195,
-      "p95": 428
+      "avg": 156.04226173127367,
+      "p95": 728.5
     },
     "billing": {
-      "avg": 1218.348908752426,
-      "p95": 2662
+      "avg": 180.7236312399356,
+      "p95": 729
     },
     "complexOperations": {
-      "avg": 205.66705437627218,
-      "p95": 419
+      "avg": 84.86277873070325,
+      "p95": 208.39999999999986
     }
   },
   "successRate": {
-    "overall": 0.43224690395124316,
-    "subscription": 0,
-    "billing": 0.9999339838128309
+    "overall": 0.9453183520599251,
+    "subscription": 0.8300786942582338,
+    "billing": 0.9997987117552335
   },
-  "errorRate": 0.5648949135679642,
+  "errorRate": 0.05401405845357011,
   "operations": {
     "subscriptionsCreated": 0,
     "subscriptionsCancelled": 0,
