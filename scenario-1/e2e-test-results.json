@@ -1,0 +1,343 @@
+{
+  "timestamp": "2026-01-05T18:01:56.871Z",
+  "summary": {
+    "totalSamples": 50,
+    "totalPassed": 50,
+    "accuracy": 100,
+    "avgLatency": 8.4
+  },
+  "groups": [
+    {
+      "group": "A",
+      "name": "Cấu hình Business",
+      "samples": 20,
+      "passed": 20,
+      "accuracy": 100,
+      "avgLatency": 5.1,
+      "stdDev": 4.4,
+      "complexity": "High (4-5 svcs)"
+    },
+    {
+      "group": "B",
+      "name": "Truy vấn Data (SQL)",
+      "samples": 20,
+      "passed": 20,
+      "accuracy": 100,
+      "avgLatency": 7.4,
+      "stdDev": 3.7,
+      "complexity": "Low (1 svc)"
+    },
+    {
+      "group": "C",
+      "name": "Phân tích lỗi (RCA)",
+      "samples": 10,
+      "passed": 10,
+      "accuracy": 100,
+      "avgLatency": 16.9,
+      "stdDev": 4.5,
+      "complexity": "Medium (2-3 svcs)"
+    }
+  ],
+  "detailedResults": [
+    {
+      "id": "A01",
+      "passed": true,
+      "latency": 0.589,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A02",
+      "passed": true,
+      "latency": 6.488,
+      "reason": "Recommended: subscription"
+    },
+    {
+      "id": "A03",
+      "passed": true,
+      "latency": 0.401,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A04",
+      "passed": true,
+      "latency": 0.308,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A05",
+      "passed": true,
+      "latency": 8.837,
+      "reason": "Recommended: subscription"
+    },
+    {
+      "id": "A06",
+      "passed": true,
+      "latency": 9.325,
+      "reason": "Recommended: retail"
+    },
+    {
+      "id": "A07",
+      "passed": true,
+      "latency": 0.287,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A08",
+      "passed": true,
+      "latency": 0.275,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A09",
+      "passed": true,
+      "latency": 7.94,
+      "reason": "Recommended: freemium"
+    },
+    {
+      "id": "A10",
+      "passed": true,
+      "latency": 9.395,
+      "reason": "Recommended: multi"
+    },
+    {
+      "id": "A11",
+      "passed": true,
+      "latency": 0.328,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A12",
+      "passed": true,
+      "latency": 12.807,
+      "reason": "Valid model: multi"
+    },
+    {
+      "id": "A13",
+      "passed": true,
+      "latency": 9.64,
+      "reason": "Recommended: subscription"
+    },
+    {
+      "id": "A14",
+      "passed": true,
+      "latency": 0.316,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A15",
+      "passed": true,
+      "latency": 8.535,
+      "reason": "Recommended: retail"
+    },
+    {
+      "id": "A16",
+      "passed": true,
+      "latency": 0.351,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A17",
+      "passed": true,
+      "latency": 8.156,
+      "reason": "Recommended: freemium"
+    },
+    {
+      "id": "A18",
+      "passed": true,
+      "latency": 7.872,
+      "reason": "Recommended: subscription"
+    },
+    {
+      "id": "A19",
+      "passed": true,
+      "latency": 0.413,
+      "reason": "Switch successful"
+    },
+    {
+      "id": "A20",
+      "passed": true,
+      "latency": 9.298,
+      "reason": "Recommended: multi"
+    },
+    {
+      "id": "B01",
+      "passed": true,
+      "latency": 2.776,
+      "reason": "SQL generated: SELECT SUM(`totalAmount`) AS `doanh_thu_thang_10` ..."
+    },
+    {
+      "id": "B02",
+      "passed": true,
+      "latency": 9.606,
+      "reason": "SQL generated: SELECT COUNT(*) AS `tongSoDonHangHomNay` FROM `ord..."
+    },
+    {
+      "id": "B03",
+      "passed": true,
+      "latency": 3.369,
+      "reason": "SQL generated: SELECT `name` AS `customerName`, SUM(`totalAmount`..."
+    },
+    {
+      "id": "B04",
+      "passed": true,
+      "latency": 8.692,
+      "reason": "SQL generated: SELECT `name` AS `productName`, SUM(`quantity`) AS..."
+    },
+    {
+      "id": "B05",
+      "passed": true,
+      "latency": 6.224,
+      "reason": "SQL generated: SELECT COUNT(*) AS `total_active_subscriptions` FR..."
+    },
+    {
+      "id": "B06",
+      "passed": true,
+      "latency": 6.488,
+      "reason": "SQL generated: SELECT MONTH(`createdAt`) AS `thang`, SUM(`totalAm..."
+    },
+    {
+      "id": "B07",
+      "passed": true,
+      "latency": 8.692,
+      "reason": "SQL generated: SELECT `name`, `email`, `totalSpent` FROM `custome..."
+    },
+    {
+      "id": "B08",
+      "passed": true,
+      "latency": 6.757,
+      "reason": "SQL generated: SELECT COUNT(`id`) AS `soDonHangBiHuy` FROM `order..."
+    },
+    {
+      "id": "B09",
+      "passed": true,
+      "latency": 9.916,
+      "reason": "SQL generated: SELECT (SUM(CASE WHEN `status` IN ('cancelled', 'e..."
+    },
+    {
+      "id": "B10",
+      "passed": true,
+      "latency": 6.527,
+      "reason": "SQL generated: SELECT\n  `provider` AS `phuongThucThanhToan`,\n  CO..."
+    },
+    {
+      "id": "B11",
+      "passed": true,
+      "latency": 10.64,
+      "reason": "SQL generated: SELECT SUM(`quantity`) AS `total_inventory_quantit..."
+    },
+    {
+      "id": "B12",
+      "passed": true,
+      "latency": 3.114,
+      "reason": "SQL generated: SELECT * FROM `orders` WHERE `status` = 'pending' ..."
+    },
+    {
+      "id": "B13",
+      "passed": true,
+      "latency": 3.554,
+      "reason": "SQL generated: SELECT\n  `category` AS `danh_muc`,\n  SUM(`totalAmo..."
+    },
+    {
+      "id": "B14",
+      "passed": true,
+      "latency": 8.222,
+      "reason": "SQL generated: SELECT COUNT(`id`) AS `soLuongKhachHangMoi` FROM `..."
+    },
+    {
+      "id": "B15",
+      "passed": true,
+      "latency": 2.812,
+      "reason": "SQL generated: SELECT AVG(`totalAmount`) AS `GiaTriDonHangTrungBi..."
+    },
+    {
+      "id": "B16",
+      "passed": true,
+      "latency": 18.977,
+      "reason": "SQL generated: SELECT COUNT(*) FROM `addons` WHERE `isActive` = 1..."
+    },
+    {
+      "id": "B17",
+      "passed": true,
+      "latency": 7.376,
+      "reason": "SQL generated: SELECT `name` AS `productName`, `quantity` AS `cur..."
+    },
+    {
+      "id": "B18",
+      "passed": true,
+      "latency": 4.733,
+      "reason": "SQL generated: SELECT\n  `planName` AS `Tên gói đăng ký`,\n  COUNT(..."
+    },
+    {
+      "id": "B19",
+      "passed": true,
+      "latency": 10.478,
+      "reason": "SQL generated: SELECT COUNT(*) AS `total_unpaid_invoices` FROM `i..."
+    },
+    {
+      "id": "B20",
+      "passed": true,
+      "latency": 8.136,
+      "reason": "SQL generated: SELECT AVG(`totalSpent`) AS `average_lifetime_valu..."
+    },
+    {
+      "id": "C01",
+      "passed": true,
+      "latency": 28.758,
+      "reason": "Confidence: 100%"
+    },
+    {
+      "id": "C02",
+      "passed": true,
+      "latency": 14.184,
+      "reason": "Severity: unknown"
+    },
+    {
+      "id": "C03",
+      "passed": true,
+      "latency": 19.21,
+      "reason": "Severity: unknown"
+    },
+    {
+      "id": "C04",
+      "passed": true,
+      "latency": 15.02,
+      "reason": "Confidence: 95%"
+    },
+    {
+      "id": "C05",
+      "passed": true,
+      "latency": 14.343,
+      "reason": "Confidence: 100%"
+    },
+    {
+      "id": "C06",
+      "passed": true,
+      "latency": 19.843,
+      "reason": "Confidence: 100%"
+    },
+    {
+      "id": "C07",
+      "passed": true,
+      "latency": 14.537,
+      "reason": "Confidence: 90%"
+    },
+    {
+      "id": "C08",
+      "passed": true,
+      "latency": 13.446,
+      "reason": "Severity: unknown"
+    },
+    {
+      "id": "C09",
+      "passed": true,
+      "latency": 15.194,
+      "reason": "Confidence: 100%"
+    },
+    {
+      "id": "C10",
+      "passed": true,
+      "latency": 14.376,
+      "reason": "Confidence: 95%"
+    }
+  ]
+}
