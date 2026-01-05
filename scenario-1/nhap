@@ -1,432 +1,53 @@
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms> node run-e2e-tests.js
 
-
-╔════════════════════════════════════════════════════════════╗    
-║   E2E TEST - LLM ORCHESTRATOR PERFORMANCE EVALUATION     ║      
-║   Kịch bản 1: End-to-End từ NLP đến K8s Execution        ║      
-╚════════════════════════════════════════════════════════════╝    
-
-
-📋 Test Dataset:
-   - Nhóm A (Business Config): 20 mẫu - High complexity
-   - Nhóm B (SQL Query):       20 mẫu - Low complexity
-   - Nhóm C (RCA):             10 mẫu - Medium complexity
-   - TỔNG:                     50 mẫu
-
-🔐 Authenticating...
-✅ Authentication successful
-
-════════════════════════════════════════════════════════════      
-  NHÓM A: CẤU HÌNH BUSINESS (High Complexity - 4-5 services)      
-════════════════════════════════════════════════════════════      
-  A01: Chuyển sang mô hình Subscription cho toà... ✅ PASS (0.59s)
-  A02: Tôi muốn bán sản phẩm SaaS với gói tháng... ✅ PASS (6.49s)
-  A03: Cấu hình hệ thống cho mô hình Freemium v... ✅ PASS (0.40s)
-  A04: Chuyển đổi từ retail sang multi-model để... ✅ PASS (0.31s)
-  A05: Tôi kinh doanh gym với membership monthl... ✅ PASS (8.84s)
-  A06: Áp dụng mô hình bán hàng truyền thống ch... ✅ PASS (9.32s)
-  A07: Chuyển sang retail model cho sản phẩm vậ... ✅ PASS (0.29s)
-  A08: Cấu hình subscription với billing cycle ... ✅ PASS (0.28s)
-  A09: Tôi muốn cung cấp API với free tier và p... ✅ PASS (7.94s)
-  A10: Setup mô hình hybrid: bán lẻ sản phẩm + ... ✅ PASS (9.39s)
-  A11: Chuyển toàn bộ catalog sang freemium mod... ✅ PASS (0.33s)
-  A12: Tôi bán phần mềm với license perpetual v... ✅ PASS (12.81s)
-  A13: Triển khai mô hình đăng ký cho streaming... ✅ PASS (9.64s)
-  A14: Cấu hình multi-model cho marketplace với... ✅ PASS (0.32s)
-  A15: Tôi kinh doanh e-commerce bán quần áo th... ✅ PASS (8.54s)
-  A16: Chuyển đổi sang subscription cho dịch vụ... ✅ PASS (0.35s)
-  A17: Setup freemium cho ứng dụng mobile game...✅ PASS (8.16s)
-  A18: Tôi muốn bán khóa học online với gói mem... ✅ PASS (7.87s)
-  A19: Cấu hình retail cho siêu thị mini... ✅ PASS (0.41s)
-  A20: Triển khai multi-model cho platform B2B ... ✅ PASS (9.30s)
-
-════════════════════════════════════════════════════════════      
-  NHÓM B: TRUY VẤN DATA SQL (Low Complexity - 1 service)
-  B04: Sản phẩm bán chạy nhất tuần qua... ✅ PASS (8.69s)      
-  B05: Số lượng subscription active hiện tại... ✅ PASS (6.22s)
-  B06: Doanh thu theo từng tháng trong năm 2025... ✅ PASS (6.49s)
-  B07: Top 10 khách hàng VIP theo tổng chi tiêu... ✅ PASS (8.69s)
-  B08: Số đơn hàng bị hủy trong tuần... ✅ PASS (6.76s)        
-  B09: Tỷ lệ churn rate của subscription... ✅ PASS (9.92s)    
-  B10: Thống kê payment theo phương thức thanh ... ✅ PASS (6.53s)
-  B11: Tổng inventory hiện có của tất cả sản ph... ✅ PASS (10.64s)
-  B12: Đơn hàng pending chưa xử lý... ✅ PASS (3.11s)
-  B13: Revenue breakdown theo category... ✅ PASS (3.55s)      
-  B14: Số khách hàng mới đăng ký trong tuần... ✅ PASS (8.22s) 
-  B15: Average order value tháng này... ✅ PASS (2.81s)        
-  B16: Tổng số promotion đang active... ✅ PASS (18.98s)       
-  B17: Danh sách sản phẩm sắp hết hàng... ✅ PASS (7.38s)      
-  B18: Thống kê billing theo subscription tier... ✅ PASS (4.73s)
-  B19: Số lượng invoice chưa thanh toán... ✅ PASS (10.48s)    
-  B20: Customer lifetime value trung bình... ✅ PASS (8.14s)   
-
-════════════════════════════════════════════════════════════   
-  NHÓM C: PHÂN TÍCH LỖI RCA (Medium Complexity - 2-3 services) 
-════════════════════════════════════════════════════════════   
-  C01: Tại sao giao dịch thanh toán #TXN-2025-0... ✅ PASS (28.76s)
-  C02: Lỗi khi tạo order mới, nguyên nhân là gì... ✅ PASS (14.18s)
-  C03: Đơn hàng ORD-2025-100 không thể xử lý vì... ✅ PASS (19.21s)
-  C04: Hóa đơn không được tạo tự động sau khi c... ✅ PASS (15.02s)
-  C05: Không lấy được thông tin khách hàng khi ... ✅ PASS (14.34s)
-  C06: Lỗi khi thêm order items vào database... ✅ PASS (19.84s)
-  C07: Không tính được giá subscription SUB-123... ✅ PASS (14.54s)
-  C08: Người dùng không thể login được... ✅ PASS (13.45s)
-  C09: LLM không trả về kết quả đúng format... ✅ PASS (15.19s)
-  C10: Webhook từ Stripe không được xử lý... ✅ PASS (14.38s)
-
-⏱️  Tổng thời gian chạy test: 417.6s
-
-
-╔════════════════════════════════════════════════════════════════════════════════════════╗
-║                    KẾT QUẢ ĐÁNH GIÁ E2E - LLM ORCHESTRATOR                           ║
-╠════════════════════════════════════════════════════════════════════════════════════════╣
-║ Nhóm tác vụ              │ SL Mẫu │ Độ phức tạp      │ Semantic Acc. │ Latency (s)     ║
-╠────────────────────────────────────────────────────────────────────────────────────────╣
-║ A - Cấu hình Business    │    20  │ High (4-5 svcs)  │     100%      │  5.1 ± 4.4     ║
-║ B - Truy vấn Data (SQL)  │    20  │ Low (1 svc)      │     100%      │  7.4 ± 3.7     ║
-║ C - Phân tích lỗi (RCA)  │    10  │ Medium (2-3 svcs) │     100%      │ 16.9 ± 4.5     ║
-╠────────────────────────────────────────────────────────────────────────────────────────╣
-║ Tổng thể                 │    50  │ Đa dạng          │     100%      │   TB: 8.4s     ║
-╚════════════════════════════════════════════════════════════════════════════════════════╝
-
-* Ghi chú: Độ phức tạp thể hiện số lượng vi dịch vụ cần tương tác để lấy context.
-
-📊 Chi tiết kết quả đã lưu: ./e2e-test-results.json
-
-════════════════════════════════════════════════════════════   
-  LATEX TABLE FORMAT
-════════════════════════════════════════════════════════════   
-\begin{table}[htbp]
-    \centering
-    \caption{Kết quả đánh giá độ chính xác của LLM trên 50 mẫu thử nghiệm}
-    \label{tab:ket-qua-llm}
-    \renewcommand{\arraystretch}{1.3}
-    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l c c c c @{}}
-        \toprule
-        \textbf{Nhóm tác vụ} & \textbf{SL Mẫu} & \textbf{Độ phức tạp} & \textbf{Semantic Acc.} & \textbf{Latency (s)} \\      
-        \midrule
-        A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% & \begin{table}[htbp]
-    \centering
-    \caption{Kết quả đánh giá độ chính xác của LLM trên 50 mẫu thử nghiệm}
-    \label{tab:ket-qua-llm}
-    \renewcommand{\arraystretch}{1.3}
-    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l c c c c @{}}
-        \toprule
-        \textbf{Nhóm tác vụ} & \textbf{SL Mẫu} & \textbf{Độ phức tạp} & \textbf{Semantic Acc.} & \textbf{Latency (s)} \\      
-        \midrule
-        A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% &     \renewcommand{\arraystretch}{1.3}
-    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l c c c c @{}}
-        \toprule
-        \textbf{Nhóm tác vụ} & \textbf{SL Mẫu} & \textbf{Độ phức tạp} & \textbf{Semantic Acc.} & \textbf{Latency (s)} \\      
-        \midrule
-        A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% &  c @{}}
-        \toprule
-        \textbf{Nhóm tác vụ} & \textbf{SL Mẫu} & \textbf{Độ phức tạp} & \textbf{Semantic Acc.} & \textbf{Latency (s)} \\      
-        \midrule
-        A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% & c tạp} & \textbf{Semantic Acc.} & \textbf{Latency (s)} \\      
-        \midrule
-        A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% &         \midrule
-        A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% &         A - Cấu hình Business & 20 & High (4-5 svcs) & 100\% & $5.1 \pm 4.4$ \\
-        B - Truy vấn Data (SQL) & 20 & Low (1 svc) & 100\% & $7.4 \pm 3.7$ \\
-$5.1 \pm 4.4$ \\
-        B - Truy vấn Data (SQL) & 20 & Low (1 svc) & 100\% & $7.4 \pm 3.7$ \\
-.4 \pm 3.7$ \\
-        C - Phân tích lỗi (RCA) & 10 & Medium (2-3 svcs) & 100\% & $16.9 \pm 4.5$ \\
-        \midrule
-        \textbf{Tổng thể} & \textbf{50} & \textbf{Đa dạng} & \textbf{100\%} & \textbf{TB: 8.4s} \\
-        \bottomrule
-    \end{tabular*}
-\end{table}
-
-✅ E2E Test completed successfully!
-
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms>       
-
-% & $16.9 \pm 4.5$ \\
-        \midrule
-        \textbf{Tổng thể} & \textbf{50} & \textbf{Đa dạng} & \textbf{100\%} & \textbf{TB: 8.4s} \\
-        \bottomrule
-    \end{tabular*}
-\end{table}
-
-% & $16.9 \pm 4.5$ \\
-        \midrule
-        \textbf{Tổng thể} & \textbf{50} & \textbf{Đa dạng} & \textbf{100\%} & \textbf{TB: 8.4s} \\
-        \bottomrule
-    \end{tabular*}
-% & $16.9 \pm 4.5$ \\
-        \midrule
-        \textbf{Tổng thể} & \textbf{50} & \textbf{Đa dạng} & \t% & $16.9 \pm 4.5$ \\
-        \midrule
-% & $16.9 \pm 4.5$ \\
-% & $16.9 \pm 4.5$ \\
-        \midrule
-        \textbf{Tổng thể} & \textbf{50} & \textbf{Đa dạng} & \textbf{100\%} & \textbf{TB: 8.4s} \\
-        \bottomrule
-    \end{tabular*}
-\end{table}
-
-✅ E2E Test completed successfully!
-
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms> ^C    
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms> cd c:\Users\vulin\Desktop\app\nexora-core-services\bmms; node -e "
->> const http = require('http');
->> 
->> async function httpRequest(options, body) {
->>   return new Promise((resolve, reject) => {
->>     const req = http.request(options, (res) => {
->>       let data = '';
->>       res.on('data', chunk => data += chunk);
->>       res.on('end', () => resolve(JSON.parse(data)));
->>     });
->>     req.on('error', reject);
->>     if (body) req.write(JSON.stringify(body));
->>     req.end();
->>   });
->> }
->>
->> async function main() {
->>   // 1. Login
->>   console.log('=== 1. LOGIN ===');
->>   const loginRes = await httpRequest({
->>     hostname: 'localhost', port: 3000, path: '/auth/login', method: 'POST',
->>     headers: { 'Content-Type': 'application/json' }
->>   }, { email: 'admin2@demo.com', password: 'Admin@123' });  
->>
->>   const token = loginRes.data?.accessToken || loginRes.accessToken;
->>   console.log('Token:', token ? ' Got token' : ' No token');
->>
->>   // 2. Test Group A - recommend-model
->>   console.log('\n=== 2. TEST GROUP A: RECOMMEND MODEL ===');
->>   console.log('Prompt: \"Tôi muốn bán sản phẩm SaaS với gói tháng và năm\"');
->>
->>   const resA = await httpRequest({
->>     hostname: 'localhost', port: 3000, path: '/llm-orchestrator/recommend-model', method: 'POST',
->>     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
->>   }, { business_description: 'Tôi muốn bán sản phẩm SaaS với gói tháng và năm', lang: 'vi' });
->>
->>   console.log('\n LLM Response:');
->>   console.log(JSON.stringify(resA, null, 2));
->>
->>   console.log('\n VALIDATION: Kiểm tra xem response có recommended_model hay không');
->>   console.log('   recommended_model =', resA.recommended_model);
->>   console.log('    PASS nếu recommended_model tồn tại và là valid model');
->>
->>   // 3. Test Group B - text-to-sql
->>   console.log('\n=== 3. TEST GROUP B: TEXT TO SQL ===');    
->>   console.log('Prompt: \"Doanh thu tháng 10 là bao nhiêu?\"');
->>
->>   const resB = await httpRequest({
->>     hostname: 'localhost', port: 3000, path: '/llm-orchestrator/text-to-sql', method: 'POST',
->>     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
->>   }, { question: 'Doanh thu tháng 10 là bao nhiêu?', lang: 'vi' });
->>
->>   console.log('\n LLM Response:');
->>   console.log(JSON.stringify(resB, null, 2));
->>
->>   console.log('\n VALIDATION: Kiểm tra SQL được generate');
->>   console.log('   sql =', resB.sql);
->>   console.log('    PASS nếu có sql hoặc natural_response'); 
->>
->>   // 4. Test Group C - RCA
->>   console.log('\n=== 4. TEST GROUP C: RCA (Root Cause Analysis) ===');
->>   console.log('Error Log: [PaymentService] Error processing payment #TXN-2025-001: StripeError: card_declined');
->>
->>   const resC = await httpRequest({
->>     hostname: 'localhost', port: 3000, path: '/llm-orchestrator/analyze-incident', method: 'POST',
->>     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
->>   }, {
->>     incident_description: '[PaymentService] Error processing payment #TXN-2025-001: StripeError: card_declined - insufficient_funds',
->>     lang: 'vi' 
->>   });
->>
->>   console.log('\n LLM Response:');
->>   console.log(JSON.stringify(resC, null, 2));
->>   
->>   console.log('\n VALIDATION: Kiểm tra analysis');
->>   console.log('   severity =', resC.severity);
->>   console.log('   analysis =', resC.analysis?.substring(0, 200) + '...');
->>   console.log('    PASS nếu có severity và analysis');
->> }
->>
->> main().catch(console.error);
->> "
-[eval]:30
-  console.log('Prompt: " Tôi muốn bán sản phẩm SaaS với gói tháng và năm\');
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-SyntaxError: Invalid or unexpected token
-    at makeContextifyScript (node:internal/vm:185:14)
-    at compileScript (node:internal/process/execution:386:10)  
-    at node:internal/process/execution:450:25
-    at [eval]-wrapper:6:24
-    at runScriptInContext (node:internal/process/execution:447:60)
-    at evalFunction (node:internal/process/execution:87:30)    
-    at evalScript (node:internal/process/execution:99:3)       
-    at node:internal/main/eval_string:74:3
-
-Node.js v22.15.0
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms> node test-single.js
-════════════════════════════════════════════════════════════   
-  1. LOGIN
-════════════════════════════════════════════════════════════   
-Token: ✅ Got token
-
-════════════════════════════════════════════════════════════   
-  2. TEST GROUP A: RECOMMEND MODEL
-════════════════════════════════════════════════════════════   
-
-📤 REQUEST:
-   Endpoint: POST /llm-orchestrator/recommend-model
-   Body: { business_description: "Tôi muốn bán sản phẩm SaaS với gói tháng và năm" }
-
-📥 LLM RESPONSE:
-{
-  "next_steps": [
-    "Chọn mô hình 'Thu phí định kỳ' cho doanh nghiệp của bạn.",
-    "Lên kế hoạch chi tiết các gói tháng, gói năm của phần mềm (giá cả, tính năng từng gói).",
-    "Chuẩn bị ra mắt sản phẩm và bắt đầu thu hút những khách hàng đầu tiên!"
-  ],
-  "alternatives": [
-    {
-      "model": "freemium",
-      "brief_reason": "Cho khách dùng thử bản miễn phí giới hạn tính năng trước, sau đó nếu thích thì họ nâng cấp lên bản trả phí."
-    },
-    {
-      "model": "multi",
-      "brief_reason": "Kết hợp mô hình định kỳ với việc bán các gói dịch vụ hỗ trợ đặc biệt 1 lần hoặc các module tính năng riêng biệt."
-    }
-  ],
-  "greeting": "Chào bạn của mình! 👋 Nghe bạn nói về sản phẩm phần mềm (SaaS) với các gói tháng/năm là mình thấy ngay một ý tưởng kinh doanh rất hay và tiềm năng đây!",
-  "recommendation_intro": "Dựa vào việc bạn muốn bán một sản phẩm phần mềm và có các gói theo tháng/năm, mình nghĩ cách vận hành phù hợp nhất cho bạn sẽ là:",
-  "recommended_model": "subscription",
-  "why_this_fits": "1. Sản phẩm của bạn là SaaS (Software as a Service) - tức là một dịch vụ số, mà dịch vụ số thì cực kỳ hợp với việc thu phí định kỳ. Khách hàng trả tiền để được sử dụng liên tục. \n2. Bạn đã nói rõ là có 'gói tháng và năm' rồi, thì đây chính là bản chất của mô hình Subscription (thu phí định kỳ) luôn! \n3. Mô hình này giúp bạn có nguồn doanh thu đều đặn và dễ dự đoán hơn mỗi tháng, mỗi năm.",
-  "how_it_works": "Mô hình này hoạt động thế này nè, đơn giản lắm: Khách hàng của bạn sẽ đăng ký để sử dụng phần mềm, sau đó họ sẽ trả một khoản tiền đều đặn hàng tháng hoặc hàng năm để tiếp tục truy cập và dùng các tính năng. Cứ như bạn đăng ký Netflix để xem phim hay Spotify để nghe nhạc vậy đó, trả tiền đều đặn để được dùng liên tục dịch vụ.",
-  "alternatives_intro": "À, nếu sau này bạn muốn mở rộng hoặc chưa chắc chắn, đây là một vài ý tưởng khác bạn có thể tham khảo:",
-  "closing": "Mô hình 'Thu phí định kỳ' là cực kỳ ổn định và tiềm năng cho các sản phẩm SaaS đó bạn. Cứ tự tin triển khai nhé, mình tin bạn sẽ thành công! 💪"
-}
-
-🔍 VALIDATION LOGIC:
-   - Kiểm tra: recommended_model có tồn tại không?
-   - recommended_model = subscription
-   - Là valid model (retail/subscription/freemium/multi)? YES  
-   → KẾT QUẢ: ✅ PASS
-
-════════════════════════════════════════════════════════════   
-  3. TEST GROUP B: TEXT TO SQL
-════════════════════════════════════════════════════════════   
-
-📤 REQUEST:
-   Endpoint: POST /llm-orchestrator/text-to-sql
-   Body: { question: "Doanh thu tháng 10 là bao nhiêu?" }      
-
-📥 LLM RESPONSE:
-{
-  "success": true,
-  "question": "Doanh thu tháng 10 là bao nhiêu?",
-  "sql": "SELECT SUM(`totalAmount`) AS `doanhThuThang10` FROM `orders` AS `o` WHERE `paymentStatus` = 'paid' AND MONTH(`createdAt`) = 10 AND YEAR(`createdAt`) = YEAR(CURDATE()) LIMIT 1",   
-  "natural_response": "📊 Không tìm thấy dữ liệu phù hợp với điều kiện tìm kiếm.\n\n💡 **Gợi ý**: Có thể không có dữ liệu trong khoảng thời gian này, hoặc điều kiện lọc quá chặt. Hãy thử:\n- Kiểm tra lại khoảng thời gian\n- Mở rộng điều kiện tìm kiếm\n- Xem tổng quan dữ liệu có sẵn",
-  "raw_data": "[{\"doanhThuThang10\":null}]",
-  "error": ""
-}
-
-🔍 VALIDATION LOGIC:
-   - Kiểm tra: SQL được generate không?
-   - sql = SELECT SUM(`totalAmount`) AS `doanhThuThang10` FROM `orders` AS `o` WHERE `paymentStatus` = 'paid' AND MONTH(`createdAt`) = 10 AND YEAR(`createdAt`) = YEAR(CURDATE()) LIMIT 1    
-   - natural_response = 📊 Không tìm thấy dữ liệu phù hợp với điều kiện tìm kiếm.
-
-💡 **Gợi ý**: Có thể không có dữ liệu tro...
-   - Có SQL query? YES
-   → KẾT QUẢ: ✅ PASS
-
-════════════════════════════════════════════════════════════   
-  4. TEST GROUP C: RCA (Root Cause Analysis)
-════════════════════════════════════════════════════════════   
-
-📤 REQUEST:
-   Endpoint: POST /llm-orchestrator/analyze-incident
-   Body: { incident_description: "[PaymentService] Error: StripeError: card_declined" }
-
-📥 LLM RESPONSE:
-{
-  "success": true,
-  "analysis": {
-    "summary": "Thanh toán không thành công do thẻ khách hàng bị từ chối với lý do không đủ tiền, phát sinh lỗi StripeError.",
-    "error_type": "RuntimeError",
-    "root_cause": "Nguyên nhân gốc rễ là ngân hàng của khách hàng đã từ chối giao dịch do không đủ số dư trong tài khoản. Dịch vụ thanh toán (PaymentService) đã nhận được phản hồi lỗi từ API của Stripe (StripeError: card_declined - insufficient_funds), đây là một lỗi nghiệp vụ từ phía ngân hàng chứ không phải lỗi kỹ thuật của hệ thống.",
-    "affected_component": "PaymentService, cụ thể là các chức năng xử lý thanh toán và tương tác với Stripe API.",
-    "suggested_fix": "```typescript\n// Trong logic xử lý thanh toán của PaymentService\ntry {\n  // ... Gọi Stripe API để tạo hoặc xác nhận thanh toán ...\n  // Ví dụ: await stripe.paymentIntents.create(...);\n} catch (error) {\n  if (error instanceof Stripe.StripeError) {\n    console.error(`[PaymentService] Stripe error processing payment #TXN-2025-001: ${error.code} - ${error.decline_code || error.message}`);\n    let userFriendlyMessage = 'Thanh toán không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.';\n    if (error.code === 'card_declined') {\n      userFriendlyMessage = `Thẻ của bạn đã bị từ chối với lý do: ${error.decline_code ? error.decline_code.replace(/_/g, ' ') : 'không đủ tiền'}. Vui lòng thử phương thức thanh toán khác.`;\n    }\n    // Đóng gói lỗi Stripe vào exception tùy chỉnh của ứng dụng để xử lý nhất quán\n    throw new CheckoutSessionException(userFriendlyMessage);\n  } else {\n    // Xử lý các loại lỗi khác không phải của Stripe\n    console.error(`[PaymentService] Unexpected error processing payment #TXN-2025-001: ${error.message}`, error);\n    throw new Error(`Đã xảy ra lỗi hệ thống không mong muốn trong quá trình xử lý thanh toán.`);\n  }\n}\n```",
-    "prevention": "1. **Kiểm thử đầy đủ:** Sử dụng thẻ thử nghiệm của Stripe cho các kịch bản thành công, từ chối (bao gồm 'insufficient_funds', 'do_not_honor', v.v.) và các lỗi khác để đảm bảo hệ thống xử lý đúng đắn. \n2. **Giám sát nâng cao:** Triển khai giám sát tỷ lệ lỗi thanh toán và các mã lỗi từ chối cụ thể (decline codes) từ Stripe để nhanh chóng phát hiện xu hướng và các vấn đề tiềm ẩn. \n3. **Thông báo cho người dùng:** Đảm bảo rằng thông báo lỗi đến người dùng cuối thân thiện và cung cấp hướng dẫn rõ ràng khi giao dịch bị từ chối.",
-    "severity": "medium",
-    "confidence": 1
-  },
-  "codeContext": [
-    "```typescript\n// Trong logic xử lý thanh toán của PaymentService\ntry {\n  // ... Gọi Stripe API để tạo hoặc xác nhận thanh toán ...\n  // Ví dụ: await stripe.paymentIntents.create(...);\n} catch (error) {\n  if (error instanceof Stripe.StripeError) {\n    console.error(`[PaymentService] Stripe error processing payment #TXN-2025-001: ${error.code} - ${error.decline_code || error.message}`);\n    let userFriendlyMessage = 'Thanh toán không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.';\n    if (error.code === 'card_declined') {\n      userFriendlyMessage = `Thẻ của bạn đã bị từ chối với lý do: ${error.decline_code ? error.decline_code.replace(/_/g, ' ') : 'không đủ tiền'}. Vui lòng thử phương thức thanh toán khác.`;\n    }\n    // Đóng gói lỗi Stripe vào exception tùy chỉnh của ứng dụng để xử lý nhất quán\n    throw new CheckoutSessionException(userFriendlyMessage);\n  } else {\n    // Xử lý các loại lỗi khác không phải của Stripe\n    console.error(`[PaymentService] Unexpected error processing payment #TXN-2025-001: ${error.message}`, error);\n    throw new Error(`Đã xảy ra lỗi hệ thống không mong muốn trong quá trình xử lý thanh toán.`);\n  }\n}\n```",
-    "1. **Kiểm thử đầy đủ:** Sử dụng thẻ thử nghiệm của Stripe cho các kịch bản thành công, từ chối (bao gồm 'insufficient_funds', 'do_not_honor', v.v.) và các lỗi khác để đảm bảo hệ thống xử lý đúng đắn. \n2. **Giám sát nâng cao:** Triển khai giám sát tỷ lệ lỗi thanh toán và các mã lỗi từ chối cụ thể (decline codes) từ Stripe để nhanh chóng phát hiện xu hướng và các vấn đề tiềm ẩn. \n3. **Thông báo cho người dùng:** Đảm bảo rằng thông báo lỗi đến người dùng cuối thân thiện và cung cấp hướng dẫn rõ ràng khi giao dịch bị từ chối."
-  ]
-}
-
-🔍 VALIDATION LOGIC:
-   - Kiểm tra: Có severity và analysis không?
-   - severity = undefined
-   - analysis exists? YES
-   → KẾT QUẢ: ❌ FAIL
-
-════════════════════════════════════════════════════════════   
-  SUMMARY
-════════════════════════════════════════════════════════════   
-  Group A (Recommend Model): ✅ PASS
-  Group B (Text-to-SQL): ✅ PASS
-  Group C (RCA): ❌ FAIL
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms> node test-single.js
+PS C:\Users\vulin\Desktop\app\stress-test\scenario-1> node test-single.js
 ════════════════════════════════════════════════════════════
   1. LOGIN
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
 Token: ✅ Got token
 
-════════════════════════════════════════════════════════════   
-  2. TEST GROUP A: RECOMMEND MODEL
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
+  2. TEST GROUP A: RECOMMEND MODEL (A23 - SUPER AMBIGUOUS)
+════════════════════════════════════════════════════════════
 
 📤 REQUEST:
    Endpoint: POST /llm-orchestrator/recommend-model
-   Body: { business_description: "Tôi muốn bán sản phẩm SaaS với gói tháng và năm" }
+   Body: { business_description: "Kho hàng của tôi nhập xuất liên tục, bán cho khách vãng lai là chính. Không cần lưu thông tin khách hàng." }
 
 📥 LLM RESPONSE:
 {
   "next_steps": [
-    "Chọn mô hình 'Thu phí định kỳ'",
-    "Thiết lập các gói cước (tháng/năm) và tính năng đi kèm",  
-    "Bắt đầu giới thiệu sản phẩm SaaS của bạn đến mọi người!"  
+    "Chọn mô hình 'Bán hàng truyền thống' để bắt đầu.",
+    "Đăng tải các sản phẩm trong kho của bạn lên.",
+    "Bắt đầu nhận đơn hàng và giao cho khách vãng lai!"
   ],
   "alternatives": [
     {
-      "model": "freemium",
-      "brief_reason": "Cho khách dùng thử miễn phí một phần mềm/tính năng cơ bản, sau đó trả tiền để dùng bản cao cấp hơn (nhiều SaaS lớn cũng làm vậy!)."
+      "model": "multi",
+      "brief_reason": "Nếu bạn muốn thêm các dịch vụ giá trị gia tăng hoặc chương trình khách hàng thân thiết sau này để giữ chân khách."
     },
     {
-      "model": "multi",
-      "brief_reason": "Sau này, nếu bạn có thêm sản phẩm vật lý đi kèm hoặc dịch vụ tư vấn trả phí một lần, bạn có thể kết hợp thêm."
+      "model": "subscription",
+      "brief_reason": "Nếu bạn có thể đóng gói các sản phẩm từ kho thành 'hộp quà bất ngờ' hoặc gói hàng thiết yếu gửi định kỳ cho khách."
     }
   ],
-  "greeting": "Chào bạn của mình! 👋 Nghe bạn chia sẻ về việc bán sản phẩm SaaS với gói tháng và năm là mình thấy hào hứng liền đó!",
-  "recommendation_intro": "Với ý tưởng của bạn, mình nghĩ cách vận hành phù hợp nhất chính là:",
-  "recommended_model": "subscription",
-  "why_this_fits": "1. Sản phẩm SaaS (phần mềm dịch vụ) là một dạng dịch vụ số, không phải sản phẩm vật lý. 2. Việc cung cấp các 'gói tháng và năm' chính là bản chất của mô hình 'Thu phí định kỳ'. 3. Giúp bạn có nguồn doanh thu ổn định, dễ dự đoán hơn theo thời gian.",
-  "how_it_works": "Nó hoạt động y như bạn đăng ký Netflix hay Spotify vậy đó! Khách hàng sẽ đăng ký sử dụng phần mềm của bạn, sau đó họ chọn gói cước (ví dụ: gói tháng hoặc gói năm) và trả tiền định kỳ để tiếp tục dùng. Miễn là họ còn trả tiền, họ còn được truy cập và sử dụng tất cả tính năng của phần mềm. Đơn giản vậy thôi!",
-  "alternatives_intro": "Nếu bạn muốn thu hút thêm nhiều người dùng ban đầu, hoặc sau này muốn đa dạng hóa hơn, đây là vài lựa chọn khác bạn có thể tham khảo:",
-  "closing": "Bắt đầu với mô hình 'Thu phí định kỳ' là cực kỳ chuẩn cho sản phẩm SaaS của bạn rồi. Cứ mạnh dạn triển khai nhé! Mình tin bạn sẽ thành công! 💪"
+  "greeting": "Chào bạn! 👋 Mình hiểu bạn đang muốn tìm cách kinh doanh phù hợp cho kho hàng nhập xuất liên tục của mình.",
+  "recommendation_intro": "Dựa vào mô tả của bạn về việc bán hàng cho khách vãng lai và không cần lưu thông tin, mình nghĩ cách vận hành phù hợp nhất chính là:",
+  "recommended_model": "retail",
+  "why_this_fits": "1. Sản phẩm của bạn là hàng hóa vật lý (từ kho hàng), được bán trực tiếp và dứt điểm cho khách hàng. \n2. Khách vãng lai thường chỉ mua một lần và thanh toán xong là nhận hàng, không cần các gói dịch vụ hay cam kết định kỳ. \n3. Mô hình này rất đơn giản để quản lý giao dịch mua bán, giúp bạn tập trung vào việc nhập xuất và bán hàng mà không cần phức tạp hóa việc lưu trữ thông tin khách hàng.",
+  "how_it_works": "Rất đơn giản, mô hình này hoạt động y như một cửa hàng bán lẻ truyền thống hoặc một gian hàng trên Shopee, Tiki vậy đó: Khách hàng thấy sản phẩm bạn có -> Họ chọn mua và thanh toán một lần -> Bạn giao hàng cho họ -> Giao dịch hoàn tất. Xong!",
+  "alternatives_intro": "Tuy nhiên, nếu sau này bạn muốn mở rộng hoặc có ý tưởng khác, bạn có thể cân nhắc:",
+  "closing": "Bắt đầu với 'Bán hàng truyền thống' là cách đơn giản và hiệu quả nhất cho mô hình kho hàng hiện tại của bạn. Chúc bạn buôn may bán đắt nhé! 🚀"
 }
 
 🔍 VALIDATION LOGIC:
-   - Kiểm tra: recommended_model có tồn tại không?
-   - recommended_model = subscription
-   - Là valid model (retail/subscription/freemium/multi)? YES  
-   → KẾT QUẢ: ✅ PASS
+   - Expected model: retail (vì bán cho khách vãng lai, không lưu info)
+   - recommended_model = retail
+   - Đúng là retail? YES ✅
+   → KẾT QUẢ: ✅ PASS - LLM hiểu đúng ngữ cảnh!
 
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
   3. TEST GROUP B: TEXT TO SQL
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
 
 📤 REQUEST:
    Endpoint: POST /llm-orchestrator/text-to-sql
@@ -435,26 +56,24 @@ Token: ✅ Got token
 📥 LLM RESPONSE:
 {
   "success": true,
-  "question": "Doanh thu tháng 12 năm 2025 là bao nhiêu?",     
-  "sql": "SELECT SUM(`totalAmount`) AS `doanhThuThang12_2025` FROM `orders` WHERE `paymentStatus` = 'paid' AND `createdAt` >= '2025-12-01 00:00:00' AND `createdAt` < '2026-01-01 00:00:00' LIMIT 1",
-  "natural_response": "Chào bạn,\n\n💰 Doanh thu tháng 12 năm 2025 là **4.999,96 đ**.",
-  "raw_data": "[{\"doanhThuThang12_2025\":\"4999.96\"}]",      
+  "question": "Doanh thu tháng 12 năm 2025 là bao nhiêu?",
+  "sql": "SELECT SUM(`totalAmount`) AS `Doanh_thu_thang_12_2025` FROM `orders` AS `o` WHERE `paymentStatus` = 'paid' AND YEAR(`updatedAt`) = 2025 AND MONTH(`updatedAt`) = 12 LIMIT 1",
+  "natural_response": "Chào bạn, doanh thu của tháng 12 năm 2025 là **4.999,96 đ** 💰. Đây là tổng doanh thu từ các đơn hàng đã được thanh toán thành công trong tháng đó. Hy vọng thông tin này hữu ích cho bạn! ✅",
+  "raw_data": "[{\"Doanh_thu_thang_12_2025\":\"4999.96\"}]",
   "error": ""
 }
 
 🔍 VALIDATION LOGIC:
    - Kiểm tra: SQL được generate không?
-   - sql = SELECT SUM(`totalAmount`) AS `doanhThuThang12_2025` FROM `orders` WHERE `paymentStatus` = 'paid' AND `createdAt` >= '2025-12-01 00:00:00' AND `createdAt` < '2026-01-01 00:00:00' LIMIT 1
-   - natural_response = Chào bạn,
-
-💰 Doanh thu tháng 12 năm 2025 là **4.999,96 đ**....
-   - raw_data = [{"doanhThuThang12_2025":"4999.96"}]
+   - sql = SELECT SUM(`totalAmount`) AS `Doanh_thu_thang_12_2025` FROM `orders` AS `o` WHERE `paymentStatus` = 'paid' AND YEAR(`updatedAt`) = 2025 AND MONTH(`updatedAt`) = 12 LIMIT 1
+   - natural_response = Chào bạn, doanh thu của tháng 12 năm 2025 là **4.999,96 đ** 💰. Đây là tổng doanh thu từ các đơn hàn...
+   - raw_data = [{"Doanh_thu_thang_12_2025":"4999.96"}]
    - Có SQL query? YES
    → KẾT QUẢ: ✅ PASS
 
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
   4. TEST GROUP C: RCA (Root Cause Analysis)
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
 
 📤 REQUEST:
    Endpoint: POST /llm-orchestrator/analyze-incident
@@ -462,35 +81,24 @@ Token: ✅ Got token
 
 📥 LLM RESPONSE:
 {
-  "success": true,
-  "analysis": {
-    "summary": "Giao dịch thanh toán thất bại do thẻ tín dụng của khách hàng bị cổng thanh toán Stripe từ chối vì không đủ tiền trong tài khoản.",
-    "error_type": "RuntimeError",
-    "root_cause": "Nguyên nhân gốc rễ là thẻ tín dụng được sử dụng để thanh toán không có đủ tiền trong tài khoản. Khi PaymentService gọi API của Stripe để xử lý thanh toán, Stripe đã nhận được phản hồi từ ngân hàng phát hành thẻ rằng giao dịch bị từ chối do 'insufficient_funds'. Đây là một kết quả giao dịch không thành công hợp lệ từ một dịch vụ bên ngoài, không phải là lỗi trong mã nguồn của ứng dụng.",
-    "affected_component": "PaymentService (cụ thể là các hàm xử lý thanh toán qua Stripe)",
-    "suggested_fix": "Mặc dù lỗi đã được ghi lại, PaymentService cần cải thiện cách xử lý kết quả lỗi này: 1. Đảm bảo trả về thông báo lỗi thân thiện và rõ ràng cho người dùng cuối (ví dụ: 'Thẻ của bạn đã bị từ chối do không đủ tiền. Vui lòng thử lại với thẻ khác hoặc cập nhật phương thức thanh toán của bạn.'). 2. Cập nhật trạng thái giao dịch trong cơ sở dữ liệu thành 'thất bại' cùng với lý do từ chối cụ thể (ví dụ: 'card_declined_insufficient_funds'). 3. Kích hoạt các quy trình nghiệp vụ phù hợp, như gửi email thông báo cho khách hàng yêu cầu cập nhật thông tin thanh toán hoặc cung cấp tùy chọn thử lại.",
-    "prevention": "1. **Xử lý lỗi toàn diện**: Triển khai xử lý lỗi chi tiết cho tất cả các loại `StripeError` có thể xảy ra, ánh xạ các mã lỗi kỹ thuật của Stripe sang thông báo thân thiện với người dùng. 2. **Phản hồi người dùng rõ ràng**: Cung cấp phản hồi ngay lập tức và rõ ràng cho người dùng về các giao dịch thanh toán thất bại và các bước khắc phục. 3. **Giám sát**: Theo dõi tỷ lệ từ chối thanh toán và các mã từ chối cụ thể để phát hiện xu hướng hoặc các vấn đề tiềm ẩn. 4. **Kiểm thử**: Thực hiện kiểm thử kỹ lưỡng các kịch bản thanh toán thất bại, bao gồm các mã từ chối khác nhau, trong môi trường staging bằng cách sử dụng thẻ thử nghiệm của Stripe.",
-    "severity": "medium",
-    "confidence": 0.9
-  },
-  "codeContext": [
-    "Mặc dù lỗi đã được ghi lại, PaymentService cần cải thiện cách xử lý kết quả lỗi này: 1. Đảm bảo trả về thông báo lỗi thân thiện và rõ ràng cho người dùng cuối (ví dụ: 'Thẻ của bạn đã bị từ chối do không đủ tiền. Vui lòng thử lại với thẻ khác hoặc cập nhật phương thức thanh toán của bạn.'). 2. Cập nhật trạng thái giao dịch trong cơ sở dữ liệu thành 'thất bại' cùng với lý do từ chối cụ thể (ví dụ: 'card_declined_insufficient_funds'). 3. Kích hoạt các quy trình nghiệp vụ phù hợp, như gửi email thông báo cho khách hàng yêu cầu cập nhật thông tin thanh toán hoặc cung cấp tùy chọn thử lại.",
-    "1. **Xử lý lỗi toàn diện**: Triển khai xử lý lỗi chi tiết cho tất cả các loại `StripeError` có thể xảy ra, ánh xạ các mã lỗi kỹ thuật của Stripe sang thông báo thân thiện với người dùng. 2. **Phản hồi người dùng rõ ràng**: Cung cấp phản hồi ngay lập tức và rõ ràng cho người dùng về các giao dịch thanh toán thất bại và các bước khắc phục. 3. **Giám sát**: Theo dõi tỷ lệ tcho tất cả các loại `StripeError` có thể xảy ra, ánh xạ các mã lỗi kỹ thuật của Stripe sang thông báo thân thiện với người dùng. 2. **Phản hồi người dùng rõ ràng**: Cung cấp phản hồi ngay lập tức và rõ ràng cho người dùng về các giao dịch thanh toán thất bại và các bước khắc phục. 3. **Giám sát**: Theo dõi tỷ lệ tlỗi kỹ thuật của Stripe sang thông báo thân thiện với người dùng. 2. **Phản hồi người dùng rõ ràng**: Cung cấp phản hồi ngay lập tức và rõ ràng cho người dùng về các giao dịch thanh toán thất bại và các bước khắc phục. 3. **Giám sát**: Theo dõi tỷ lệ tập tức và rõ ràng cho người dùng về các giao dịch thanh toán thất bại và các bước khắc phục. 3. **Giám sát**: Theo dõi tỷ lệ tất bại và các bước khắc phục. 3. **Giám sát**: Theo dõi tỷ lệ từ chối thanh toán và các mã từ chối cụ thể để phát hiện xu hướng hoặc các vấn đề tiềm ẩn. 4. **Kiểm thử**: Thực hiện kiểm thử kỹ lưỡng các kịch bản thanh toán thất bại, bao gồm các mã từ chối khác nhau, trong môi trường staging bằng cách sử dụng thẻ thử nghiệm của Stripe."
-  ]
+  "recommendations": [],
+  "severity": "unknown",
+  "analysis": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 25.394554723s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.5-flash\"},\"quotaValue\":\"20\"}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"25s\"}]",
+  "raw_response": "[GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: [429 Too Many Requests] You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-2.5-flash\nPlease retry in 25.394554723s. [{\"@type\":\"type.googleapis.com/google.rpc.Help\",\"links\":[{\"description\":\"Learn more about Gemini API quotas\",\"url\":\"https://ai.google.dev/gemini-api/docs/rate-limits\"}]},{\"@type\":\"type.googleapis.com/google.rpc.QuotaFailure\",\"violations\":[{\"quotaMetric\":\"generativelanguage.googleapis.com/generate_content_free_tier_requests\",\"quotaId\":\"GenerateRequestsPerDayPerProjectPerModel-FreeTier\",\"quotaDimensions\":{\"location\":\"global\",\"model\":\"gemini-2.5-flash\"},\"quotaValue\":\"20\"}]},{\"@type\":\"type.googleapis.com/google.rpc.RetryInfo\",\"retryDelay\":\"25s\"}]"
 }
 
 🔍 VALIDATION LOGIC:
    - Kiểm tra: Có analysis với root_cause không?
-   - severity = medium
-   - root_cause = Nguyên nhân gốc rễ là thẻ tín dụng được sử dụng để thanh toán không có đủ tiền t...
-   - confidence = 0.9
+   - severity = unknown
+   - root_cause = N/A
+   - confidence = undefined
    - Có analysis hợp lệ? YES
    → KẾT QUẢ: ✅ PASS
 
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
   SUMMARY
-════════════════════════════════════════════════════════════   
+════════════════════════════════════════════════════════════
   Group A (Recommend Model): ✅ PASS
   Group B (Text-to-SQL): ✅ PASS
   Group C (RCA): ✅ PASS
-PS C:\Users\vulin\Desktop\app\nexora-core-services\bmms>       
+PS C:\Users\vulin\Desktop\app\stress-test\scenario-1> 

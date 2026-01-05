@@ -31,11 +31,14 @@ const CONFIG = {
 // ==================== TEST DATASET ====================
 const TEST_DATASET = {
   // Nhóm A: Cấu hình Business (High Complexity - 4-5 services)
+  // ⚠️ A01-A04: Input mập mờ (Ambiguous) - Test khả năng suy luận ngữ nghĩa của LLM
   groupA: [
-    { id: 'A01', prompt: 'Chuyển sang mô hình Subscription cho toàn bộ hệ thống', expectedModel: 'subscription', type: 'switch-model' },
-    { id: 'A02', prompt: 'Tôi muốn bán sản phẩm SaaS với gói tháng và năm', expectedModel: 'subscription', type: 'recommend-model' },
-    { id: 'A03', prompt: 'Cấu hình hệ thống cho mô hình Freemium với 3 tier', expectedModel: 'freemium', type: 'switch-model' },
-    { id: 'A04', prompt: 'Chuyển đổi từ retail sang multi-model để hỗ trợ cả bán lẻ và subscription', expectedModel: 'multi', type: 'switch-model' },
+    // 🔴 AMBIGUOUS PROMPTS - Không chứa keyword trực tiếp, LLM phải suy luận
+    { id: 'A01', prompt: 'Khách hàng muốn trả tiền đều đều hàng tháng như Netflix ấy, làm sao setup?', expectedModel: 'subscription', type: 'recommend-model', ambiguous: true },
+    { id: 'A02', prompt: 'Cho người dùng xài thử miễn phí rồi sau đó mới tính tiền nếu họ thích', expectedModel: 'freemium', type: 'recommend-model', ambiguous: true },
+    { id: 'A03', prompt: 'Tôi vừa muốn bán hàng như siêu thị vừa muốn có gói membership VIP cho khách quen', expectedModel: 'multi', type: 'recommend-model', ambiguous: true },
+    { id: 'A04', prompt: 'Cửa hàng bán bánh mì, khách đến mua rồi đi luôn, không cần đăng ký gì cả', expectedModel: 'retail', type: 'recommend-model', ambiguous: true },
+    // 🟢 CLEAR PROMPTS - Có keyword rõ ràng
     { id: 'A05', prompt: 'Tôi kinh doanh gym với membership monthly và yearly', expectedModel: 'subscription', type: 'recommend-model' },
     { id: 'A06', prompt: 'Áp dụng mô hình bán hàng truyền thống cho cửa hàng tạp hóa', expectedModel: 'retail', type: 'recommend-model' },
     { id: 'A07', prompt: 'Chuyển sang retail model cho sản phẩm vật lý', expectedModel: 'retail', type: 'switch-model' },
@@ -52,6 +55,10 @@ const TEST_DATASET = {
     { id: 'A18', prompt: 'Tôi muốn bán khóa học online với gói membership', expectedModel: 'subscription', type: 'recommend-model' },
     { id: 'A19', prompt: 'Cấu hình retail cho siêu thị mini', expectedModel: 'retail', type: 'switch-model' },
     { id: 'A20', prompt: 'Triển khai multi-model cho platform B2B và B2C', expectedModel: 'multi', type: 'recommend-model' },
+    // 🔴 SUPER AMBIGUOUS - Ngữ cảnh thực tế, không có keyword kỹ thuật
+    { id: 'A21', prompt: 'Dạo này dòng tiền (cashflow) của tôi bấp bênh quá, tháng có tháng không. Có cách nào để khách hàng cam kết trả tiền định kỳ để tôi dễ dự đoán doanh thu không?', expectedModel: 'subscription', type: 'recommend-model', ambiguous: true },
+    { id: 'A22', prompt: 'Tôi có app xịn nhưng ít người biết. Tôi muốn user vào dùng cho sướng đã, nghiện rồi thì mới chặn tính năng cao cấp bắt nạp tiền.', expectedModel: 'freemium', type: 'recommend-model', ambiguous: true },
+    { id: 'A23', prompt: 'Kho hàng của tôi nhập xuất liên tục, bán cho khách vãng lai là chính, tôi không muốn lưu thông tin khách làm gì cho nặng database.', expectedModel: 'retail', type: 'recommend-model', ambiguous: true },
   ],
 
   // Nhóm B: Truy vấn Data SQL (Low Complexity - 1 service)
@@ -79,66 +86,77 @@ const TEST_DATASET = {
   ],
 
   // Nhóm C: Phân tích lỗi RCA (Medium Complexity - 2-3 services)
+  // ⚠️ Validation chặt: Phải tìm ra đúng root cause, không chỉ có analysis
   groupC: [
     { 
       id: 'C01', 
       errorLog: '[PaymentService] Error processing payment #TXN-2025-001: StripeError: card_declined - insufficient_funds',
       question: 'Tại sao giao dịch thanh toán #TXN-2025-001 bị từ chối?',
-      expectedErrorType: 'PaymentError'
+      expectedErrorType: 'PaymentError',
+      expectedKeywords: ['insufficient', 'funds', 'card', 'declined', 'tiền', 'thẻ', 'từ chối', 'không đủ']
     },
     { 
       id: 'C02', 
       errorLog: '[OrderService] TypeError: Cannot read property \'save\' of undefined\n  at OrderRepository.create (order.repository.ts:45)\nCaused by: Connection timeout after 5000ms',
       question: 'Lỗi khi tạo order mới, nguyên nhân là gì?',
-      expectedErrorType: 'DatabaseError'
+      expectedErrorType: 'DatabaseError',
+      expectedKeywords: ['timeout', 'connection', 'database', 'undefined', 'kết nối', 'hết thời gian']
     },
     { 
       id: 'C03', 
       errorLog: '[InventoryService] WARN: Product #PROD-123 out of stock. Available: 0, Requested: 5\n[OrderEvent] Inventory reserve failed for order ORD-2025-100',
       question: 'Đơn hàng ORD-2025-100 không thể xử lý vì sao?',
-      expectedErrorType: 'BusinessLogicError'
+      expectedErrorType: 'BusinessLogicError',
+      expectedKeywords: ['stock', 'inventory', 'available', 'hết hàng', 'tồn kho', 'không đủ']
     },
     { 
       id: 'C04', 
       errorLog: '[BillingService] WARN: No handler for event \'order.created\' from partition 2\n[Kafka] Consumer group \'billing-group\' lag: 150 messages',
       question: 'Hóa đơn không được tạo tự động sau khi có order mới',
-      expectedErrorType: 'EventProcessingError'
+      expectedErrorType: 'EventProcessingError',
+      expectedKeywords: ['handler', 'kafka', 'event', 'consumer', 'lag', 'message', 'sự kiện']
     },
     { 
       id: 'C05', 
       errorLog: '[CRMOrchestrator] Error calling CustomerService.getCustomer(): UNAVAILABLE: 14 UNAVAILABLE: Connection refused (localhost:50051)',
       question: 'Không lấy được thông tin khách hàng khi tạo order',
-      expectedErrorType: 'NetworkError'
+      expectedErrorType: 'NetworkError',
+      expectedKeywords: ['connection', 'refused', 'unavailable', 'grpc', 'kết nối', 'từ chối', 'không khả dụng']
     },
     { 
       id: 'C06', 
       errorLog: '[OrderService] QueryFailedError: Cannot add or update a child row: a foreign key constraint fails',
       question: 'Lỗi khi thêm order items vào database',
-      expectedErrorType: 'DatabaseError'
+      expectedErrorType: 'DatabaseError',
+      expectedKeywords: ['foreign', 'key', 'constraint', 'relation', 'khóa ngoại', 'ràng buộc']
     },
     { 
       id: 'C07', 
       errorLog: '[BillingService] Error: No pricing strategy found for subscriptionId=SUB-123, billingCycle=monthly',
       question: 'Không tính được giá subscription SUB-123',
-      expectedErrorType: 'BusinessLogicError'
+      expectedErrorType: 'BusinessLogicError',
+      expectedKeywords: ['pricing', 'strategy', 'not found', 'missing', 'chiến lược', 'giá', 'không tìm thấy']
     },
     { 
       id: 'C08', 
       errorLog: '[AuthService] RedisError: Connection timeout (127.0.0.1:6379)\n[JWT] Unable to cache access token for user USER-456',
       question: 'Người dùng không thể login được',
-      expectedErrorType: 'CacheError'
+      expectedErrorType: 'CacheError',
+      expectedKeywords: ['redis', 'cache', 'timeout', 'connection', 'token', 'kết nối', 'bộ nhớ đệm']
     },
     { 
       id: 'C09', 
       errorLog: '[LLM-Orchestrator] ZodError: Invalid JSON output from LLM - Missing required field: \'business_model\'',
       question: 'LLM không trả về kết quả đúng format',
-      expectedErrorType: 'ValidationError'
+      expectedErrorType: 'ValidationError',
+      expectedKeywords: ['json', 'invalid', 'missing', 'field', 'zod', 'validation', 'schema', 'format']
     },
     { 
       id: 'C10', 
       errorLog: '[StripeWebhook] Error: Webhook signature verification failed\n[Payment] Skipping event \'payment_intent.succeeded\'',
       question: 'Webhook từ Stripe không được xử lý',
-      expectedErrorType: 'AuthError'
+      expectedErrorType: 'AuthError',
+      expectedKeywords: ['signature', 'verification', 'webhook', 'failed', 'chữ ký', 'xác thực']
     },
   ]
 };
@@ -236,6 +254,7 @@ async function callAPI(endpoint, method, body, token) {
 
 /**
  * Validate Group A (Business Config) response
+ * ⚠️ Strict validation cho ambiguous prompts - phải đúng model
  */
 function validateGroupA(testCase, response) {
   if (!response || !response.data) return { valid: false, reason: 'No response data' };
@@ -261,27 +280,46 @@ function validateGroupA(testCase, response) {
   if (testCase.type === 'recommend-model') {
     const recommendedModel = data.recommended_model || data.recommendation?.model;
     if (recommendedModel) {
-      // Accept if model is correct or similar
-      const modelMatch = recommendedModel.toLowerCase().includes(testCase.expectedModel) ||
-                        testCase.expectedModel.toLowerCase().includes(recommendedModel.toLowerCase());
+      const normalizedModel = recommendedModel.toLowerCase();
+      const expectedModel = testCase.expectedModel.toLowerCase();
+      
+      // ⚠️ STRICT: Ambiguous prompts phải match ĐÚNG model
+      if (testCase.ambiguous) {
+        if (normalizedModel === expectedModel) {
+          return { valid: true, reason: `✓ AMBIGUOUS PASS: ${recommendedModel}` };
+        } else {
+          return { valid: false, reason: `✗ AMBIGUOUS FAIL: Expected ${expectedModel}, got ${normalizedModel}` };
+        }
+      }
+      
+      // Normal prompts: accept matching or valid model
+      const modelMatch = normalizedModel.includes(expectedModel) ||
+                        expectedModel.includes(normalizedModel);
       if (modelMatch) {
         return { valid: true, reason: `Recommended: ${recommendedModel}` };
       }
-      // Accept any valid model as semantic success
+      // Accept any valid model as semantic success for non-ambiguous
       const validModels = ['retail', 'subscription', 'freemium', 'multi'];
-      if (validModels.includes(recommendedModel.toLowerCase())) {
+      if (validModels.includes(normalizedModel)) {
         return { valid: true, reason: `Valid model: ${recommendedModel}` };
       }
     }
     
     // Check if response has recommendation structure
     if (data.greeting || data.recommendation_intro || data.why_this_fits) {
+      // For ambiguous, still need model match
+      if (testCase.ambiguous) {
+        return { valid: false, reason: 'AMBIGUOUS: Model not clearly recommended' };
+      }
       return { valid: true, reason: 'Valid recommendation structure' };
     }
   }
   
   // Fallback: check for any successful response indicator
   if (data.success !== false && !data.error) {
+    if (testCase.ambiguous) {
+      return { valid: false, reason: 'AMBIGUOUS: No clear model recommendation' };
+    }
     return { valid: true, reason: 'API response OK' };
   }
   
@@ -324,34 +362,85 @@ function validateGroupB(testCase, response) {
 
 /**
  * Validate Group C (RCA) response
+ * ⚠️ STRICT: Phải tìm ra ĐÚNG root cause, không chỉ có analysis
+ * 
+ * Backend Schema (RCAOutputSchema):
+ * - summary: string (required)
+ * - error_type: enum (RuntimeError, TypeError, NetworkError, DatabaseError, ValidationError, AuthError, Unknown)
+ * - root_cause: string (required)
+ * - affected_component: string (optional)
+ * - suggested_fix: string (required)
+ * - prevention: string (optional)
+ * - severity: enum (critical, high, medium, low)
+ * - confidence: number (0-1)
  */
 function validateGroupC(testCase, response) {
   if (!response || !response.data) return { valid: false, reason: 'No response data' };
   
   const data = response.data;
   
-  // Check for successful analysis
-  if (data.success && data.analysis) {
-    const analysis = data.analysis;
-    
-    // Validate confidence
-    const confidence = analysis.confidence || 0;
-    if (confidence >= 0.6) {
-      return { valid: true, reason: `Confidence: ${(confidence * 100).toFixed(0)}%` };
-    }
-    
-    // Even with lower confidence, if root_cause exists, consider valid
-    if (analysis.root_cause) {
-      return { valid: true, reason: 'Root cause identified' };
-    }
+  // Must have success and analysis
+  if (!data.success || !data.analysis) {
+    return { valid: false, reason: data.error || 'No analysis returned' };
   }
   
-  // Check for severity and analysis text
-  if (data.severity && data.analysis) {
-    return { valid: true, reason: `Severity: ${data.severity}` };
+  const analysis = data.analysis;
+  
+  // Must have required fields according to RCAOutputSchema
+  if (!analysis.summary) {
+    return { valid: false, reason: 'Missing required field: summary' };
   }
   
-  return { valid: false, reason: data.error || 'Analysis failed' };
+  if (!analysis.root_cause) {
+    return { valid: false, reason: 'Missing required field: root_cause' };
+  }
+  
+  if (!analysis.suggested_fix) {
+    return { valid: false, reason: 'Missing required field: suggested_fix' };
+  }
+  
+  // ⚠️ STRICT VALIDATION: Check if root_cause contains expected keywords
+  // Combine all analysis text for keyword matching
+  const analysisText = [
+    analysis.root_cause || '',
+    analysis.summary || '',
+    analysis.suggested_fix || '',
+    analysis.affected_component || '',
+    analysis.prevention || ''
+  ].join(' ').toLowerCase();
+  
+  const expectedKeywords = testCase.expectedKeywords || [];
+  
+  const matchedKeywords = expectedKeywords.filter(kw => 
+    analysisText.includes(kw.toLowerCase())
+  );
+  
+  // Must match at least 1 keyword to prove correct understanding
+  if (matchedKeywords.length === 0) {
+    return { 
+      valid: false, 
+      reason: `Root cause không chứa keyword mong đợi. Expected: ${expectedKeywords.slice(0, 3).join(', ')}...` 
+    };
+  }
+  
+  // Check confidence (backend default is 0.5)
+  const confidence = analysis.confidence ?? 0.5;
+  if (confidence < 0.5) {
+    return { valid: false, reason: `Low confidence: ${(confidence * 100).toFixed(0)}%` };
+  }
+  
+  // Check severity is valid enum value
+  const validSeverities = ['critical', 'high', 'medium', 'low'];
+  const severity = analysis.severity || 'medium';
+  if (!validSeverities.includes(severity)) {
+    return { valid: false, reason: `Invalid severity: ${severity}` };
+  }
+  
+  // All checks passed
+  return { 
+    valid: true, 
+    reason: `✓ [${severity}] ${matchedKeywords.slice(0, 2).join(', ')} (${(confidence * 100).toFixed(0)}%)` 
+  };
 }
 
 // ==================== TEST RUNNERS ====================
@@ -709,10 +798,10 @@ async function main() {
   console.log('\n');
   
   console.log('📋 Test Dataset:');
-  console.log('   - Nhóm A (Business Config): 20 mẫu - High complexity');
+  console.log('   - Nhóm A (Business Config): 23 mẫu - High complexity (7 ambiguous)');
   console.log('   - Nhóm B (SQL Query):       20 mẫu - Low complexity');
   console.log('   - Nhóm C (RCA):             10 mẫu - Medium complexity');
-  console.log('   - TỔNG:                     50 mẫu\n');
+  console.log('   - TỔNG:                     53 mẫu\n');
   
   try {
     // Authenticate

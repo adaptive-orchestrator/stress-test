@@ -37,29 +37,30 @@ async function main() {
   const token = loginRes.data?.accessToken || loginRes.accessToken;
   console.log('Token:', token ? '✅ Got token' : '❌ No token');
 
-  // 2. Test Group A - recommend-model
+  // 2. Test Group A - recommend-model (A23 - Super Ambiguous)
   console.log('\n' + '═'.repeat(60));
-  console.log('  2. TEST GROUP A: RECOMMEND MODEL');
+  console.log('  2. TEST GROUP A: RECOMMEND MODEL (A23 - SUPER AMBIGUOUS)');
   console.log('═'.repeat(60));
+  const a23Prompt = 'Kho hàng của tôi nhập xuất liên tục, bán cho khách vãng lai là chính. Không cần lưu thông tin khách hàng.';
   console.log('\n📤 REQUEST:');
   console.log('   Endpoint: POST /llm-orchestrator/recommend-model');
-  console.log('   Body: { business_description: "Tôi muốn bán sản phẩm SaaS với gói tháng và năm" }');
+  console.log('   Body: { business_description: "' + a23Prompt + '" }');
   
   const resA = await httpRequest({
     hostname: 'localhost', port: 3000, path: '/llm-orchestrator/recommend-model', method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }
-  }, { business_description: 'Tôi muốn bán sản phẩm SaaS với gói tháng và năm', lang: 'vi' });
+  }, { business_description: a23Prompt, lang: 'vi' });
   
   console.log('\n📥 LLM RESPONSE:');
   console.log(JSON.stringify(resA, null, 2));
   
   console.log('\n🔍 VALIDATION LOGIC:');
-  console.log('   - Kiểm tra: recommended_model có tồn tại không?');
+  console.log('   - Expected model: retail (vì bán cho khách vãng lai, không lưu info)');
   console.log('   - recommended_model =', resA.recommended_model);
   const validModelsA = ['retail', 'subscription', 'freemium', 'multi'];
-  const isValidA = validModelsA.includes(resA.recommended_model?.toLowerCase());
-  console.log('   - Là valid model (retail/subscription/freemium/multi)?', isValidA ? 'YES' : 'NO');
-  console.log('   → KẾT QUẢ:', isValidA ? '✅ PASS' : '❌ FAIL');
+  const isValidA = resA.recommended_model?.toLowerCase() === 'retail';
+  console.log('   - Đúng là retail?', isValidA ? 'YES ✅' : 'NO ❌');
+  console.log('   → KẾT QUẢ:', isValidA ? '✅ PASS - LLM hiểu đúng ngữ cảnh!' : '❌ FAIL');
 
   // 3. Test Group B - text-to-sql
   console.log('\n' + '═'.repeat(60));
